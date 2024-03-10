@@ -1,0 +1,21 @@
+{
+  "name": "ticketing-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.ts",
+  "scripts": {
+    "start": "node server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "express": "^4.18.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-dist": "^5.11.10",
+    "swagger-ui-express": "^5.0.0"
+  }
+}
