@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"outDir": "./dist",
+		"rootDir": "./",
+		"baseUrl": "./src",
+		"paths": {
+			"*/": ["*"]
+		},
+		"esModuleInterop": true
+	},
+	"include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
+	"exclude": ["node_modules"]
+}
