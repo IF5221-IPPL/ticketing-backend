@@ -5,6 +5,8 @@ const CONSTANT = {
 		DEVELOPMENT: ["*"],
 		PRODUCTION: ["*"],
 	},
+	DEFAULT_LOG_FILE_PATH: "logs/all.log",
+	DEFAULT_ACCCESS_LOG_FILE_PATH: "logs/access.log"
 };
 
 export default CONSTANT;

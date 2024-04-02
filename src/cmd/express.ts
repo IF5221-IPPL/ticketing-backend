@@ -10,6 +10,8 @@ import routes from "routes";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 
+import morganMiddleware from "../middleware/morgan";
+
 require("dotenv").config();
 
 export default (app: Application) => {
@@ -19,6 +21,7 @@ export default (app: Application) => {
 		method: ["GET", "PUT", "POST", "DELETE"],
 	};
 
+	app.use(morganMiddleware);
 	app.use(bodyParser.json({ limit: process.env.MAX_REQUEST_SIZE }));
 	app.enable("trust-proxy");
 	app.use(cors(corsOption));
