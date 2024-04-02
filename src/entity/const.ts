@@ -6,7 +6,8 @@ const CONSTANT = {
 		PRODUCTION: ["*"],
 	},
 	DEFAULT_LOG_FILE_PATH: "logs/all.log",
-	DEFAULT_ACCCESS_LOG_FILE_PATH: "logs/access.log"
+	DEFAULT_ACCCESS_LOG_FILE_PATH: "logs/access.log",
+	DEFAULT_JWT_EXPIRES_IN: "1d"
 };
 
 export default CONSTANT;
