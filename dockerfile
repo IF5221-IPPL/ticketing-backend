@@ -30,7 +30,7 @@ RUN git clone https://github.com/vishnubob/wait-for-it.git
 
 RUN apk update && apk add --no-cache bash
 
-RUN cp -R /usr/src/app/src/Public /usr/src/app/dist/src/public
+RUN cp -R /usr/src/app/src/public /usr/src/app/dist/src/public
 
 EXPOSE 5000
 
