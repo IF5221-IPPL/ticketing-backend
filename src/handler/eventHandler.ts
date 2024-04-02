@@ -38,4 +38,25 @@ export const findEventById = async (req: Request, res: Response) => {
         console.error('Error finding event by ID:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
+}; 
+
+   // Function to update an event by ID
+export const updateEventById = async (req: Request, res: Response) => {
+    const eventId = req.params.eventId;
+    const updateData = req.body; // New data to update the event
+
+    try {
+        // Find the event by ID and update it with the new data
+        const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
+
+        if (!updatedEvent) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.json(updatedEvent); // Respond with the updated event
+    } catch (error) {
+        console.error('Error updating event by ID:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
 };
+ 
