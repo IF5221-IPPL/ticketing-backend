@@ -12,3 +12,14 @@ export const createEvent = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+// Function to fetch all events
+export const readEvents = async (req: Request, res: Response) => {
+    try {
+        const events = await Event.find();
+        res.json(events);
+    } catch (error) {
+        console.error('Error fetching events:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
