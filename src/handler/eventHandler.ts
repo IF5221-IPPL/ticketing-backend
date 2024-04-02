@@ -43,20 +43,36 @@ export const findEventById = async (req: Request, res: Response) => {
    // Function to update an event by ID
 export const updateEventById = async (req: Request, res: Response) => {
     const eventId = req.params.eventId;
-    const updateData = req.body; // New data to update the event
+    const updateData = req.body; 
 
     try {
-        // Find the event by ID and update it with the new data
         const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
 
         if (!updatedEvent) {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        res.json(updatedEvent); // Respond with the updated event
+        res.json(updatedEvent);
     } catch (error) {
         console.error('Error updating event by ID:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
  
+// Function to delete an event by ID
+export const deleteEventById = async (req: Request, res: Response) => {
+    const eventId = req.params.eventId;
+
+    try {
+         const deletedEvent = await Event.findByIdAndDelete(eventId);
+
+        if (!deletedEvent) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.json({ message: 'Event deleted successfully', deletedEvent });
+    } catch (error) {
+        console.error('Error deleting event by ID:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
