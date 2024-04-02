@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { isValidObjectId } from 'mongoose';
 
 export const validateEventData = (req: Request, res: Response, next: NextFunction) => {
   const { name, desc, tickerPrice, startDate, maxTicketCount, endDate } = req.body;
@@ -34,5 +35,17 @@ export const validateEventData = (req: Request, res: Response, next: NextFunctio
   }
 
   // If all validations pass, proceed to the next middleware/handler
+  next();
+};
+
+export const validateEventId = (req: Request, res: Response, next: NextFunction) => {
+  const eventId = req.params.eventId;
+
+  // Check if eventId is a valid ObjectId
+  if (!isValidObjectId(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID' });
+  }
+
+  // If validation passes, proceed to the next middleware/handler
   next();
 };
