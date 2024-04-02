@@ -14,7 +14,6 @@ interface LogInfo {
 // Custom format
 const customFormat = format.printf((info: LogInfo) => {
   // The timestamp is automatically included in the info object by format.timestamp()
-  console.log(info)
   const log = {
     level: info.level,
     timestamp: info.timestamp, // This will be in RFC 3339 format
