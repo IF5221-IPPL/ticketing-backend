@@ -28,7 +28,7 @@ export default (app: Application) => {
 	app.use(cookieParser());
 
 	app.use(process.env.PREFIX_API, routes.HealthRoutes());
-	app.use(process.env.PREFIX_API, "/auth", routes.AuthRoutes());
+	app.use(`${process.env.PREFIX_API}/auth`, routes.AuthRoutes());
 
 	app.use((_: Request, res: Response) => {
 		return sendResponse(res, StatusCodes.NOT_FOUND, "Not Found", {});

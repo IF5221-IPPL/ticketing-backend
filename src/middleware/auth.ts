@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { StatusCodes } from "http-status-codes";
 import { sendResponse } from "pkg/http/";
 
-export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
+export const auth = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (authHeader) {
     const token = authHeader.split(' ')[1];
