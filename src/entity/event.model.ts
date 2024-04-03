@@ -1,10 +1,10 @@
-// event.model.ts
 import mongoose, { Schema } from 'mongoose';
 
+// Event data parameter
 const eventSchema = new Schema({
   name: { type: String, required: true },
-  desc: { type: String, required: true },
-  tickerPrice: { type: Number, required: true },
+  description: { type: String, required: true },
+  ticketPrice: { type: Number, required: true },
   startDate: { type: Date, required: true },
   maxTicketCount: { type: Number, required: true },
   endDate: { type: Date, required: true },

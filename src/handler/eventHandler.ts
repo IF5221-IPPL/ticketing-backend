@@ -1,6 +1,5 @@
-// eventHandler.ts
 import { Request, Response } from 'express';
-import Event from 'entity/event.model'; // Import your Mongoose model
+import Event from 'entity/event.model'; 
 
 export const createEvent = async (req: Request, res: Response) => {
     try {
@@ -24,7 +23,6 @@ export const readEvents = async (req: Request, res: Response) => {
     }
 };
 
-// Function to find a specific event by ID
 export const findEventById = async (req: Request, res: Response) => {
     const eventId = req.params.eventId;
 
@@ -40,7 +38,6 @@ export const findEventById = async (req: Request, res: Response) => {
     }
 }; 
 
-   // Function to update an event by ID
 export const updateEventById = async (req: Request, res: Response) => {
     const eventId = req.params.eventId;
     const updateData = req.body; 
@@ -59,7 +56,6 @@ export const updateEventById = async (req: Request, res: Response) => {
     }
 };
  
-// Function to delete an event by ID
 export const deleteEventById = async (req: Request, res: Response) => {
     const eventId = req.params.eventId;
 
