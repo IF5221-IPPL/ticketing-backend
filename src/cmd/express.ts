@@ -13,6 +13,7 @@ import { StatusCodes } from "http-status-codes";
 import morganMiddleware from "../middleware/morgan";
 
 import eventRoutes from 'routes/event'; // Import your event routes
+import { minioProxy } from "middleware/upload/";
 
 require("dotenv").config();
 
@@ -23,6 +24,7 @@ export default (app: Application) => {
         method: ["GET", "PUT", "POST", "DELETE"],
     };
 
+	app.use("/public", minioProxy);
     app.use(morganMiddleware);
     app.use(bodyParser.json({ limit: process.env.MAX_REQUEST_SIZE }));
     app.enable("trust-proxy");
@@ -32,6 +34,7 @@ export default (app: Application) => {
     // Use the health routes and event routes
     app.use(process.env.PREFIX_API, routes.HealthRoutes());
     app.use(process.env.PREFIX_API, eventRoutes); // Use the event routes
+	app.use(process.env.PREFIX_API, routes.FileRoutes());
 
     app.use((_: Request, res: Response) => {
         return sendResponse(res, StatusCodes.NOT_FOUND, "Not Found", {});
