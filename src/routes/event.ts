@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { createEvent, readEvents, findEventById, updateEventById, deleteEventById } from '../handler/eventHandler';
-import { validateEventData, validateEventUpdateData } from '../middleware/eventMiddleware'; // Import your event-specific middleware
+import { validateEventData, validateEventUpdateData } from '../middleware/eventMiddleware';
 
 const router = express.Router();
 
