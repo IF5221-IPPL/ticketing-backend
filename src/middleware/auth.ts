@@ -2,18 +2,31 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { StatusCodes } from "http-status-codes";
 import { sendResponse } from "pkg/http/";
+import User from '../model/user';
 
-export const auth = (req: Request, res: Response, next: NextFunction) => {
+export const auth = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (authHeader) {
     const token = authHeader.split(' ')[1];
-    jwt.verify(token, process.env.JWT_SECRET!, (err, user) => {
-      if (err) {
-        sendResponse(res, StatusCodes.FORBIDDEN, "Forbidden request", "");
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
+      const user = await User.findOne({ _id: decoded.userId });
+
+      if (!user) {
+        return sendResponse(res, StatusCodes.UNAUTHORIZED, "Invalid login credential", "");
       }
-      res.locals.user = user;
+
+      if (!user.isActive) {
+        return sendResponse(res, StatusCodes.FORBIDDEN, "Forbidden request", "");
+      }
+
+      req.user = user;
+
       next();
-    });
+    } catch (err) {
+      sendResponse(res, StatusCodes.FORBIDDEN, "Forbidden request", "");
+    }
   } else {
     sendResponse(res, StatusCodes.UNAUTHORIZED, "You are not authorized", "");
   }

@@ -7,12 +7,23 @@ import { ILoginRequest, ILoginResponse } from '../entity/login';
 import { sendResponse } from 'pkg/http';
 import CONSTANT from 'entity/const';
 import { Logger } from 'pkg/logger';
+import Joi from 'joi';
+
+const validationSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+});
 
 export const login = async (req: Request, res: Response) => {
     let loginReq: ILoginRequest | null = null;
 	let loginRes: ILoginResponse | null = null;
 
     try {
+        const { error } = validationSchema.validate(req.body);
+        if (error) {
+            return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, "");
+        }
+
         loginReq = req.body;
         loginReq.email = loginReq.email.toLowerCase();
 

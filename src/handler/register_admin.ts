@@ -5,7 +5,7 @@ import User from 'model/user';
 import { StatusCodes } from 'http-status-codes';
 import { sendResponse } from 'pkg/http';
 import CONSTANT from 'entity/const';
-import { IRegisterRequest, IRegisterResponse } from 'entity/register';
+import { IRegisterAdminRequest, IRegisterAdminResponse } from 'entity/register_admin';
 import { Logger } from 'pkg/logger';
 import Joi from 'joi';
 
@@ -13,13 +13,11 @@ const validationSchema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9!@#$&*]{8,30}$')).required(),
-    role: Joi.string().valid('eo', 'customer').required()
 });
 
-
 export const register = async (req: Request, res: Response) => {
-	let registerReq: IRegisterRequest | null = null;
-	let registerRes: IRegisterResponse | null = null;
+	let registerReq: IRegisterAdminRequest | null = null;
+	let registerRes: IRegisterAdminResponse | null = null;
 
     try {
         const { error } = validationSchema.validate(req.body);
@@ -45,7 +43,7 @@ export const register = async (req: Request, res: Response) => {
             name: registerReq.name,
             email: registerReq.email,
             password:  registerReq.password,
-            role: registerReq.role,
+            role: "admin",
             isActive: true,
         });
 
@@ -67,11 +65,11 @@ export const register = async (req: Request, res: Response) => {
             updatedAt: newUser.updatedAt?.toISOString(),
         };
 
-        sendResponse(res, StatusCodes.OK, "User registered successfully", registerRes);
+        sendResponse(res, StatusCodes.OK, "Admin registered successfully", registerRes);
     } catch (err) {
         Logger.error(
 			{
-				message: "Failed to register a new user",
+				message: "Failed to register a new admin",
 				request: registerReq,
 				response: registerRes,
 				error: { 
