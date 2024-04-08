@@ -7,9 +7,13 @@ import User from '../model/user';
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (authHeader) {
-    const token = authHeader.split(' ')[1];
+    let splittedHeader = authHeader.split(' ');
+    if (splittedHeader.length !== 2) {
+      return sendResponse(res, StatusCodes.UNAUTHORIZED, "You are not authorized", "");
+    }
+
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+      const decoded = jwt.verify(splittedHeader[1], process.env.JWT_SECRET!);
 
       const user = await User.findOne({ _id: decoded.userId });
 
