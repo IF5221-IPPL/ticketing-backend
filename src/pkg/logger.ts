@@ -9,6 +9,7 @@ interface LogInfo {
   request?: any;
   response?: any;
   timestamp?: string;
+  error?: any;
 }
 
 // Custom format
@@ -21,6 +22,7 @@ const customFormat = format.printf((info: LogInfo) => {
     message: info.message,
     request: info.request,
     response: info.response,
+    error: info.error,
   };
   return JSON.stringify(log);
 });

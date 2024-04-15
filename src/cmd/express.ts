@@ -12,7 +12,7 @@ import { StatusCodes } from "http-status-codes";
 
 import morganMiddleware from "../middleware/morgan";
 
-import eventRoutes from 'routes/event'; // Import your event routes
+import eventRoutes from 'routes/event'; 
 import { minioProxy } from "middleware/upload/";
 
 require("dotenv").config();
@@ -31,9 +31,9 @@ export default (app: Application) => {
     app.use(cors(corsOption));
     app.use(cookieParser());
 
-    // Use the health routes and event routes
-    app.use(process.env.PREFIX_API, routes.HealthRoutes());
-    app.use(process.env.PREFIX_API, eventRoutes); // Use the event routes
+	app.use(process.env.PREFIX_API, routes.HealthRoutes());
+	app.use(`${process.env.PREFIX_API}/auth`, routes.AuthRoutes());
+    app.use(process.env.PREFIX_API, eventRoutes); 
 	app.use(process.env.PREFIX_API, routes.FileRoutes());
 
     app.use((_: Request, res: Response) => {

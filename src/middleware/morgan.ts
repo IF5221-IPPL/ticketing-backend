@@ -10,7 +10,7 @@ const accessLogStream = fs.createWriteStream(logDirectory, { flags: 'a' });
 
 const stream: StreamOptions = {
     write: (message) => { 
-        accessLogStream.write(message + '\n');
+        accessLogStream.write(message);
     }
 };
 
