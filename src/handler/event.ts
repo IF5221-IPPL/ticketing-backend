@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Event } from "entity/event/";
+import { Event } from "model/event/";
 import { Logger } from "pkg/logger/";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
