@@ -1,8 +1,8 @@
 // In routes/event.ts
 
 import express from 'express';
-import { createEvent, readEvents, findEventById, updateEventById, deleteEventById } from '../handler/eventHandler';
-import { validateEventData, validateEventUpdateData } from '../middleware/eventMiddleware';
+import { createEvent, readEvents, findEventById, updateEventById, deleteEventById } from '../handler/event';
+import { validateEventData, validateEventUpdateData } from '../middleware/event';
 
 const router = express.Router();
 

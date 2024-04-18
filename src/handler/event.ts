@@ -1,15 +1,21 @@
 import { Request, Response } from "express";
-import Event from "entity/event.model";
+import { Event } from "entity/event/";
 import { Logger } from "pkg/logger/";
 import { sendResponse } from "pkg/http/";
+import { StatusCodes } from "http-status-codes";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
     const event = new Event(req.body);
     await event.save(); // saving to database (mongoDB)
-    sendResponse(res, 201, "Event created successfully", event);
+    sendResponse(res, StatusCodes.CREATED, "Event created successfully", event);
   } catch (error) {
-    sendResponse(res, 500, "Internal Server Error", null);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
     logError(req, res, "Error creating an event", error);
   }
 };
@@ -17,9 +23,14 @@ export const createEvent = async (req: Request, res: Response) => {
 export const readEvents = async (req: Request, res: Response) => {
   try {
     const events = await Event.find();
-    sendResponse(res, 200, null, events);
+    sendResponse(res, StatusCodes.OK, null, events);
   } catch (error) {
-    sendResponse(res, 500, "Internal Server Error", null);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
     logError(req, res, "Error fetching events", error);
   }
 };
@@ -30,11 +41,21 @@ export const findEventById = async (req: Request, res: Response) => {
   try {
     const event = await Event.findById(eventId);
     if (!event) {
-      return sendResponse(res, 404, `Event with ID ${eventId} not found`, null);
+      return sendResponse(
+        res,
+        StatusCodes.NOT_FOUND,
+        `Event with ID ${eventId} not found`,
+        null
+      );
     }
-    sendResponse(res, 200, null, event);
+    sendResponse(res, StatusCodes.OK, null, event);
   } catch (error) {
-    sendResponse(res, 500, "Internal Server Error", null);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
     logError(req, res, "Error finding event by ID", error);
   }
 };
@@ -49,17 +70,27 @@ export const updateEventById = async (req: Request, res: Response) => {
     });
 
     if (!updatedEvent) {
-      return sendResponse(res, 404, `Event with ID ${eventId} not found`, null);
+      return sendResponse(
+        res,
+        StatusCodes.NOT_FOUND,
+        `Event with ID ${eventId} not found`,
+        null
+      );
     }
 
     sendResponse(
       res,
-      200,
+      StatusCodes.OK,
       `Successfully updated event with ID ${eventId}`,
       updatedEvent
     );
   } catch (error) {
-    sendResponse(res, 500, "Internal Server Error", null);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
     logError(req, res, "Error updating event by ID", error);
   }
 };
@@ -71,12 +102,27 @@ export const deleteEventById = async (req: Request, res: Response) => {
     const deletedEvent = await Event.findByIdAndDelete(eventId);
 
     if (!deletedEvent) {
-      return sendResponse(res, 404, `Event with ID ${eventId} not found`, null);
+      return sendResponse(
+        res,
+        StatusCodes.NOT_FOUND,
+        `Event with ID ${eventId} not found`,
+        null
+      );
     }
 
-    sendResponse(res, 204, "Event deleted successfully", null);
+    sendResponse(
+      res,
+      StatusCodes.NO_CONTENT,
+      "Event deleted successfully",
+      null
+    );
   } catch (error) {
-    sendResponse(res, 500, "Internal Server Error", null);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
     logError(req, res, "Error deleting event by ID", error);
   }
 };
