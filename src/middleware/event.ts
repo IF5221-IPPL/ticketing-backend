@@ -2,95 +2,46 @@ import { Request, Response, NextFunction } from 'express';
 import { isValidObjectId } from 'mongoose';
 import { sendResponse } from 'pkg/http/';
 import { StatusCodes } from "http-status-codes";
+import Joi from 'joi';
+
+// Define the schema for event validation
+const eventSchema = Joi.object({
+  name: Joi.string().trim().required(),
+  description: Joi.string().trim().required(),
+  ticketPrice: Joi.number().positive().required(),
+  startDate: Joi.date().min('now').required(),
+  endDate: Joi.date().greater(Joi.ref('startDate')).required(),
+  maxTicketCount: Joi.number().positive().required()
+});
 
 export const validateEventData = (req: Request, res: Response, next: NextFunction) => {
-  const { name, description, ticketPrice, startDate, maxTicketCount, endDate } = req.body;
-
-  if (!name || !description || !ticketPrice || !startDate || !maxTicketCount || !endDate) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'All event fields must be provided', null);
+  const { error } = eventSchema.validate(req.body);
+  if (error) {
+    return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, null);
   }
-
-  if (typeof name !== 'string' || name.trim().length === 0) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Event name must be a non-empty string', null);
-  }
-
-  if (typeof description !== 'string' || description.trim().length === 0) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Event description must be a non-empty string', null);
-  }
-
-  if (typeof ticketPrice !== 'number' || ticketPrice <= 0) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Ticket price must be a positive number', null);
-  }
-
-  const parsedStartDate = new Date(startDate);
-  if (isNaN(parsedStartDate.getTime())) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Start date is invalid', null);
-  }
-
-  const now = new Date();
-  if (parsedStartDate < now) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Start date cannot be in the past', null);
-  }
-
-  if (typeof maxTicketCount !== 'number' || maxTicketCount <= 0) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Max ticket count must be a positive number', null);
-  }
-
-  const parsedEndDate = new Date(endDate);
-  if (isNaN(parsedEndDate.getTime()) || parsedEndDate <= parsedStartDate) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'End date must be after the start date', null);
-  }
-
   next();
 };
 
 export const validateEventId = (req: Request, res: Response, next: NextFunction) => {
-  const eventId = req.params.eventId;
-
-  if (!isValidObjectId(eventId)) {
+  if (!isValidObjectId(req.params.eventId)) {
     return sendResponse(res, StatusCodes.BAD_REQUEST, 'Invalid event ID', null);
   }
-
   next();
 };
 
+const updateEventSchema = Joi.object({
+  name: Joi.string().trim().optional(),
+  description: Joi.string().trim().optional(),
+  ticketPrice: Joi.number().positive().optional(),
+  startDate: Joi.date().optional(),
+  endDate: Joi.date().greater(Joi.ref('startDate')).optional(),
+  maxTicketCount: Joi.number().positive().optional()
+}).or('name', 'description', 'ticketPrice', 'startDate', 'endDate', 'maxTicketCount'); // Ensure at least one is provided
+
 export const validateEventUpdateData = (req: Request, res: Response, next: NextFunction) => {
-  const { name, description, ticketPrice, startDate, maxTicketCount, endDate } = req.body;
-
-  if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Event name must be a non-empty string if provided', null);
+  const { error } = updateEventSchema.validate(req.body);
+  if (error) {
+    return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, null);
   }
-
-  if (description !== undefined && (typeof description !== 'string' || description.trim().length === 0)) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Event description must be a non-empty string if provided', null);
-  }
-
-  if (ticketPrice !== undefined && (typeof ticketPrice !== 'number' || ticketPrice <= 0)) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Ticket price must be a positive number if provided', null);
-  }
-
-  if (startDate !== undefined) {
-    const parsedStartDate = new Date(startDate);
-    if (isNaN(parsedStartDate.getTime())) {
-      return sendResponse(res, StatusCodes.BAD_REQUEST, 'Start date must be a valid date if provided', null);
-    }
-  }
-
-  if (maxTicketCount !== undefined && (typeof maxTicketCount !== 'number' || maxTicketCount <= 0)) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, 'Max ticket count must be a positive number if provided', null);
-  }
-
-  if (endDate !== undefined) {
-    const parsedEndDate = new Date(endDate);
-    if (isNaN(parsedEndDate.getTime())) {
-      return sendResponse(res, StatusCodes.BAD_REQUEST, 'End date must be a valid date if provided', null);
-    }
-
-    // If both start and end dates are provided, check that end date is after start date
-    if (startDate !== undefined && new Date(endDate) <= new Date(startDate)) {
-      return sendResponse(res, StatusCodes.BAD_REQUEST, 'End date must be after the start date if both are provided', null);
-    }
-  }
-
   next();
 };
