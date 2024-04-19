@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const eventSchema = new Schema({
+  ownerId: { type: String, ref:'User', required: true},
   name: { type: String, required: true },
   description: { type: String, required: true },
   ticketPrice: { type: Number, required: true },
