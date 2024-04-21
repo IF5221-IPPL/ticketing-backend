@@ -3,15 +3,10 @@ import { Event } from "model/event/";
 import { Logger } from "pkg/logger/";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
-import { decodeJWT } from "utils/jwt/";
-
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    const { userId } = decodeJWT(token);
-    req.body.ownerId = userId;
-
+    req.body.ownerId = req.user;
     const event = new Event(req.body);
     await event.save();
     sendResponse(res, StatusCodes.CREATED, "Event created successfully", event);
