@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
-// Event data parameter
 const eventSchema = new Schema({
+  ownerId: { type: String, ref:'User', required: true},
   name: { type: String, required: true },
   description: { type: String, required: true },
   ticketPrice: { type: Number, required: true },
@@ -12,6 +12,5 @@ const eventSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-const Event = mongoose.model('Event', eventSchema);
+export const Event = mongoose.model('Event', eventSchema);
 
-export default Event;
