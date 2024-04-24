@@ -1,16 +1,46 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
-const eventSchema = new Schema({
-  ownerId: { type: String, ref:'User', required: true},
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  ticketPrice: { type: Number, required: true },
+interface ICategory {
+  categoryName: string;
+  totalTickets: number;
+  pricePerTicket: number;
+}
+
+interface IPromotionalContent {
+  posterImageUrl?: string;
+  tags?: string[];
+  description: string;
+}
+
+interface IEvent extends Document {
+  _id: string;
+  ownerId: string;
+  eventTitle: string;
+  subTitle?: string; 
+  startDate: Date;
+  endDate: Date;
+  location: string;
+  categories: ICategory[];
+  promotionalContent: IPromotionalContent;
+}
+
+const eventSchema = new Schema<IEvent>({
+  ownerId: { type: String, required: true },
+  eventTitle: { type: String, required: true },
+  subTitle: {type: String},
   startDate: { type: Date, required: true },
-  maxTicketCount: { type: Number, required: true },
   endDate: { type: Date, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
+  location: { type: String, required: true },
+  categories: [{
+    categoryName: { type: String, required: true },
+    totalTickets: { type: Number, required: true },
+    pricePerTicket: { type: Number, required: true }
+  }],
+  promotionalContent: {
+    posterImageUrl: { type: String},
+    tags: {type:[String]},
+    description: { type: String, required: true }
+  }
+}, { timestamps: true });
 
-export const Event = mongoose.model('Event', eventSchema);
-
+export const Event: Model<IEvent> = mongoose.model<IEvent>('Event', eventSchema);

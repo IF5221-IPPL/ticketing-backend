@@ -6,10 +6,27 @@ import { StatusCodes } from "http-status-codes";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    req.body.ownerId = req.user;
-    const event = new Event(req.body);
-    await event.save();
-    sendResponse(res, StatusCodes.CREATED, "Event created successfully", event);
+    const existingEventTitle = await Event.findOne({
+      eventTitle: req.body.eventTitle,
+    });
+    if (existingEventTitle) {
+      return sendResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Event already exists",
+        null
+      );
+    } else {
+      req.body.ownerId = req.user._id;
+      const event = new Event(req.body);
+      await event.save();
+      return sendResponse(
+        res,
+        StatusCodes.CREATED,
+        "Event created successfully",
+        event
+      );
+    }
   } catch (error) {
     sendResponse(
       res,
@@ -24,7 +41,7 @@ export const createEvent = async (req: Request, res: Response) => {
 export const readEvents = async (req: Request, res: Response) => {
   try {
     const events = await Event.find();
-    sendResponse(res, StatusCodes.OK, null, events);
+    return sendResponse(res, StatusCodes.OK, null, events);
   } catch (error) {
     sendResponse(
       res,
@@ -49,7 +66,7 @@ export const findEventById = async (req: Request, res: Response) => {
         null
       );
     }
-    sendResponse(res, StatusCodes.OK, null, event);
+    return sendResponse(res, StatusCodes.OK, null, event);
   } catch (error) {
     sendResponse(
       res,
@@ -79,7 +96,7 @@ export const updateEventById = async (req: Request, res: Response) => {
       );
     }
 
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.OK,
       `Successfully updated event with ID ${eventId}`,
@@ -111,7 +128,7 @@ export const deleteEventById = async (req: Request, res: Response) => {
       );
     }
 
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.NO_CONTENT,
       "Event deleted successfully",

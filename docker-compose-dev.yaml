@@ -38,7 +38,7 @@ services:
     image: quay.io/minio/minio
     restart: unless-stopped
     ports:
-      - $S3_PORT:9000
+      - 9000:9000
       - "9001:9001"
     env_file: ./.env
     volumes:
