@@ -83,11 +83,11 @@ export const updateEventByTitle = async (req: Request, res: Response) => {
     const existingEvent = await Event.findOne({ eventTitle });
     if (!existingEvent) {
       return sendResponse(res, StatusCodes.NOT_FOUND, "Event not found", null);
-    };
+    }
 
     const existingEventWithNewTitle = await Event.findOne({
       eventTitle: req.body.eventTitle,
-      _id: { $ne: existingEvent._id }, 
+      _id: { $ne: existingEvent._id },
     });
 
     if (existingEventWithNewTitle) {
@@ -122,17 +122,21 @@ export const updateEventByTitle = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
+export const deleteEventByeventTitle = async (req: Request, res: Response) => {
+  const selectedEventTitle = req.params.eventTitle;
+  const userID = req.user._id;
 
   try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
+    const deletedEvent = await Event.findOneAndDelete({
+      eventTitle: selectedEventTitle,
+      ownerId: userID,
+    });
 
     if (!deletedEvent) {
       return sendResponse(
         res,
         StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
+        `Event with title ${selectedEventTitle} not found`,
         null
       );
     }
@@ -140,7 +144,7 @@ export const deleteEventById = async (req: Request, res: Response) => {
     return sendResponse(
       res,
       StatusCodes.NO_CONTENT,
-      "Event deleted successfully",
+      `Event with title ${selectedEventTitle} deleted successfully`,
       null
     );
   } catch (error) {
@@ -150,7 +154,7 @@ export const deleteEventById = async (req: Request, res: Response) => {
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error deleting event by ID", error);
+    logError(req, res, "Error deleting event by title", error);
   }
 };
 
