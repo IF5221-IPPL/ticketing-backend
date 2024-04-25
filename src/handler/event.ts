@@ -55,7 +55,6 @@ export const readEvents = async (req: Request, res: Response) => {
 
 export const findEventById = async (req: Request, res: Response) => {
   const eventId = req.params.eventId;
-
   try {
     const event = await Event.findById(eventId);
     if (!event) {
@@ -78,28 +77,38 @@ export const findEventById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-  const updateData = req.body;
-
+export const updateEventByTitle = async (req: Request, res: Response) => {
   try {
-    const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, {
-      new: true,
+    const { eventTitle } = req.params;
+    const existingEvent = await Event.findOne({ eventTitle });
+    if (!existingEvent) {
+      return sendResponse(res, StatusCodes.NOT_FOUND, "Event not found", null);
+    };
+
+    const existingEventWithNewTitle = await Event.findOne({
+      eventTitle: req.body.eventTitle,
+      _id: { $ne: existingEvent._id }, 
     });
 
-    if (!updatedEvent) {
+    if (existingEventWithNewTitle) {
       return sendResponse(
         res,
-        StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
+        StatusCodes.BAD_REQUEST,
+        "Event title already exists, please find another title! ",
         null
       );
     }
 
+    const updatedEvent = await Event.findOneAndUpdate(
+      { eventTitle },
+      { $set: req.body },
+      { new: true }
+    );
+
     return sendResponse(
       res,
       StatusCodes.OK,
-      `Successfully updated event with ID ${eventId}`,
+      `Event with title ${eventTitle} successfully updated!`,
       updatedEvent
     );
   } catch (error) {
@@ -109,7 +118,7 @@ export const updateEventById = async (req: Request, res: Response) => {
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error updating event by ID", error);
+    logError(req, res, "Error updating event by title", error);
   }
 };
 

@@ -11,36 +11,22 @@ const categorySchema = Joi.object({
 });
 
 const promotionalContentSchema = Joi.object({
-  posterImageUrl: Joi.string().uri().allow(''),
-  tags: Joi.array().items(Joi.string()),
+  posterImageUrl: Joi.string().uri().allow('').required(),
+  tags: Joi.array().items(Joi.string()).required(),
   description: Joi.string().required(),
 });
 
 const eventSchema = Joi.object({
   eventTitle: Joi.string().trim().required(),
-  subTitle: Joi.string().trim(),
   startDate: Joi.date().min("now").required(),
+  subTitle: Joi.string().trim().allow('').required(),
   endDate: Joi.date().greater(Joi.ref("startDate")).required(),
   location: Joi.string().required(),
   categories: Joi.array().items(categorySchema).required(),
   promotionalContent: promotionalContentSchema,
 });
 
-const updateEventSchema = Joi.object({
-  startDate: Joi.date().min("now").required(),
-  subTitle: Joi.string().trim(),
-  endDate: Joi.date().greater(Joi.ref("startDate")).required(),
-  location: Joi.string().required(),
-  categories: Joi.array().items(categorySchema).required(),
-  promotionalContent: promotionalContentSchema,
-}).or(
-  "eventTitle",
-  "startDate",
-  "endDate",
-  "location",
-  "categories",
-  "promotionalContent"
-);
+const eventTitleSchema = Joi.string().alphanum();
 
 export const validateEventData = (
   req: Request,
@@ -70,19 +56,15 @@ export const validateEventId = (
   next();
 };
 
-export const validateEventUpdateData = (
+export const validateEventTitle = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { error } = updateEventSchema.validate(req.body);
+  const { error } = eventTitleSchema.validate(req.param.eventTitle);
   if (error) {
-    return sendResponse(
-      res,
-      StatusCodes.BAD_REQUEST,
-      error.details[0].message,
-      null
-    );
+    return sendResponse(res, StatusCodes.BAD_REQUEST, "Invalid event title", null);
   }
   next();
 };
+
