@@ -3,6 +3,7 @@ import { Event } from "model/event/";
 import { Logger } from "pkg/logger/";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
+import { IQueryParams } from "entity/queryParam/";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -279,6 +280,53 @@ export const viewAllEventsEo = async (req: Request, res: Response) => {
       null
     );
     logError(req, res, "Error fetching events", error);
+  }
+};
+
+export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
+  const {
+    search,
+    location,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 25,
+  }: IQueryParams = req.query;
+  const query: any = {};
+
+  if (search) {
+    query.eventTitle = { $regex: search, $options: "i" };
+  }
+  if (location) {
+    query.location = { $regex: location, $options: "i" };
+  }
+
+  if (startDate && endDate) {
+    query.startDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+  try {
+    const totalCount = await Event.countDocuments(query);
+    const events = await Event.find(query)
+      .sort({ startDate: 1 }) // Sort by nearest event start date, ascending
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return sendResponse(res, StatusCodes.OK, null, {
+      events,
+      totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit),
+    });
+  } catch (error) {
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "error fetching events for EO", error);
   }
 };
 
