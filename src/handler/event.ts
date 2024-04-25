@@ -158,6 +158,36 @@ export const deleteEventByeventTitle = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteEventByeventTitleAdmin = async (req: Request, res: Response) => {
+  const selectedEventTitle = req.params.eventTitle;
+  try {
+    const deletedEvent = await Event.findOneAndDelete(selectedEventTitle);
+
+    if (!deletedEvent) {
+      return sendResponse(
+        res,
+        StatusCodes.NOT_FOUND,
+        `Event with title ${selectedEventTitle} not found`,
+        null
+      );
+    }
+
+    return sendResponse(
+      res,
+      StatusCodes.NO_CONTENT,
+      `Event with title ${selectedEventTitle} deleted successfully`,
+      null
+    );
+  } catch (error) {
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "Error deleting event by title", error);
+  }
+};
 // Helper function for logging error
 function logError(
   req: Request,
