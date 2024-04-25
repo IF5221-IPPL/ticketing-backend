@@ -122,7 +122,10 @@ export const updateEventByTitle = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteEventByeventTitleEo = async (req: Request, res: Response) => {
+export const deleteEventByeventTitleEo = async (
+  req: Request,
+  res: Response
+) => {
   const selectedEventTitle = req.query.eventTitle;
   const userID = req.user._id;
 
@@ -158,7 +161,10 @@ export const deleteEventByeventTitleEo = async (req: Request, res: Response) => 
   }
 };
 
-export const deleteEventByeventTitleAdmin = async (req: Request, res: Response) => {
+export const deleteEventByeventTitleAdmin = async (
+  req: Request,
+  res: Response
+) => {
   const selectedEventTitle = req.query.eventTitle;
   try {
     const deletedEvent = await Event.findOneAndDelete(selectedEventTitle);
@@ -186,6 +192,36 @@ export const deleteEventByeventTitleAdmin = async (req: Request, res: Response) 
       null
     );
     logError(req, res, "Error deleting event by title", error);
+  }
+};
+
+export const viewEventDetails = async (req: Request, res: Response) => {
+  const selectedEventTitle = req.query.eventTitle;
+
+  try {
+    const event = await Event.findOne({eventTitle:selectedEventTitle});
+    if (!event) {
+      return sendResponse(
+        res,
+        StatusCodes.NOT_FOUND,
+        `Event with title ${selectedEventTitle} not found`,
+        null
+      );
+    }
+    return sendResponse(
+      res, 
+      StatusCodes.OK,
+      null,
+      event
+    );
+  } catch (error) {
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "Error fetching event details", error);
   }
 };
 // Helper function for logging error
