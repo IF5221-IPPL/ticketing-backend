@@ -226,8 +226,8 @@ export const viewAllEvents = async (req: Request, res: Response) => {
   try {
     const skip = (page - 1) * limit;
     const events = await Event.find({})
-      .sort({ startDate: 1 }) 
-      .skip(skip) 
+      .sort({ startDate: 1 })
+      .skip(skip)
       .limit(limit);
     const totalEvents = await Event.countDocuments();
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
@@ -247,6 +247,40 @@ export const viewAllEvents = async (req: Request, res: Response) => {
   }
 };
 
+export const viewAllEventsEo = async (req: Request, res: Response) => {
+  const { status, page = 1, limit = 25 } = req.query;
+  const userId = req.user._id;
+
+  try {
+    let query = Event.find({ ownerId: userId });
+
+    if (status) {
+      const currentDate = new Date().getTime();
+      if (status === "upcoming") {
+        query = query.where("startDate").gte(currentDate);
+      } else if (status === "past") {
+        query = query.where("startDate").lt(currentDate);
+      }
+    }
+    const startIndex = (page - 1) * limit;
+    const events = await query.skip(startIndex).limit(parseInt(limit)).exec();
+    const totalEvents = await Event.countDocuments({ ownerId: userId });
+    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+      events,
+      totalEvents,
+      currentPage: page,
+      totalPages: Math.ceil(totalEvents / limit),
+    });
+  } catch (error) {
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "Error fetching events", error);
+  }
+};
 
 // Helper function for logging error
 function logError(
