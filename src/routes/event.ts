@@ -1,6 +1,7 @@
 import express from 'express';
 import { createEvent, readEvents, findEventById, updateEventByTitle, deleteEventByeventTitleEo, deleteEventByeventTitleAdmin,
-  viewEventDetails
+  viewEventDetails,
+  viewAllEvents
  } from '../handler/event';
 import { validateEventData, validateEventId, validateEventTitle } from '../middleware/event';
 import { auth } from '../middleware/auth';
@@ -61,6 +62,13 @@ router.get(
   checkRole(CUSTOMER_ROLE),
   validateEventTitle,
   viewEventDetails
+)
+
+router.get(
+  "/events",
+  auth,
+  checkRole(CUSTOMER_ROLE),
+  viewAllEvents
 )
 
 export default router;

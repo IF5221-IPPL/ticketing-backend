@@ -199,7 +199,7 @@ export const viewEventDetails = async (req: Request, res: Response) => {
   const selectedEventTitle = req.query.eventTitle;
 
   try {
-    const event = await Event.findOne({eventTitle:selectedEventTitle});
+    const event = await Event.findOne({ eventTitle: selectedEventTitle });
     if (!event) {
       return sendResponse(
         res,
@@ -208,12 +208,7 @@ export const viewEventDetails = async (req: Request, res: Response) => {
         null
       );
     }
-    return sendResponse(
-      res, 
-      StatusCodes.OK,
-      null,
-      event
-    );
+    return sendResponse(res, StatusCodes.OK, null, event);
   } catch (error) {
     sendResponse(
       res,
@@ -224,6 +219,35 @@ export const viewEventDetails = async (req: Request, res: Response) => {
     logError(req, res, "Error fetching event details", error);
   }
 };
+
+export const viewAllEvents = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page) || 1; // default to page 1
+  const limit = parseInt(req.query.limit) || 25; // default limit to 25 items per page
+  try {
+    const skip = (page - 1) * limit;
+    const events = await Event.find({})
+      .sort({ startDate: 1 }) 
+      .skip(skip) 
+      .limit(limit);
+    const totalEvents = await Event.countDocuments();
+    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+      events,
+      totalEvents,
+      currentPage: page,
+      totalPages: Math.ceil(totalEvents / limit),
+    });
+  } catch (error) {
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "Error fetching events", error);
+  }
+};
+
+
 // Helper function for logging error
 function logError(
   req: Request,
