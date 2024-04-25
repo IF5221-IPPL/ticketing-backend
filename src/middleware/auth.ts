@@ -30,7 +30,6 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       next();
     } catch (err) {
       sendResponse(res, StatusCodes.FORBIDDEN, "Forbidden request", "");
-      console.error(err);
     }
   } else {
     sendResponse(res, StatusCodes.UNAUTHORIZED, "You are not authorized", "");

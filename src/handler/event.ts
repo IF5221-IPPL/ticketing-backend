@@ -122,8 +122,8 @@ export const updateEventByTitle = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteEventByeventTitle = async (req: Request, res: Response) => {
-  const selectedEventTitle = req.params.eventTitle;
+export const deleteEventByeventTitleEo = async (req: Request, res: Response) => {
+  const selectedEventTitle = req.query.eventTitle;
   const userID = req.user._id;
 
   try {
@@ -159,7 +159,7 @@ export const deleteEventByeventTitle = async (req: Request, res: Response) => {
 };
 
 export const deleteEventByeventTitleAdmin = async (req: Request, res: Response) => {
-  const selectedEventTitle = req.params.eventTitle;
+  const selectedEventTitle = req.query.eventTitle;
   try {
     const deletedEvent = await Event.findOneAndDelete(selectedEventTitle);
 

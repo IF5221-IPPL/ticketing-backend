@@ -1,5 +1,5 @@
 import express from 'express';
-import { createEvent, readEvents, findEventById, updateEventByTitle, deleteEventByeventTitle, deleteEventByeventTitleAdmin } from '../handler/event';
+import { createEvent, readEvents, findEventById, updateEventByTitle, deleteEventByeventTitleEo, deleteEventByeventTitleAdmin } from '../handler/event';
 import { validateEventData, validateEventId, validateEventTitle } from '../middleware/event';
 import { auth } from '../middleware/auth';
 import { checkRole} from 'middleware/check_role/';
@@ -36,15 +36,15 @@ router.put(
   updateEventByTitle
 );
 router.delete(
-  "/eo/event/:eventTitle/delete",
+  "/eo/events",
   auth,
   checkRole(EO_ROLE),
   validateEventTitle,
-  deleteEventByeventTitle
+  deleteEventByeventTitleEo
 );
 
 router.delete(
-  "/admin/event/:eventTitle/delete",
+  "/admin/events",
   auth,
   checkRole(ADMIN_ROLE),
   validateEventTitle,
