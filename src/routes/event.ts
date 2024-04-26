@@ -1,9 +1,9 @@
 import express from 'express';
-import { createEvent, readEvents, findEventById, updateEventByTitle, deleteEventByeventTitleEo, deleteEventByeventTitleAdmin,
+import { createEvent, updateEventByTitle, deleteEventByeventTitleEo, deleteEventByeventTitleAdmin,
   viewEventDetails,
   viewAllEvents,
-  viewAllEventsEo,
-  viewAllEventsWithFilter
+  viewAllEventsWithFilter,
+  viewEventsByEo
  } from '../handler/event';
 import { validateEventData, validateEventId, validateEventTitle } from '../middleware/event';
 import { auth } from '../middleware/auth';
@@ -26,14 +26,7 @@ router.post(
   uploadSingleFile
 );
 router.post("/event", auth, checkRole(EO_ROLE), validateEventData, createEvent);
-// router.get("/events", auth, checkRole(EO_ROLE), readEvents);
-router.get(
-  "/event/:eventId",
-  auth,
-  checkRole(EO_ROLE),
-  validateEventId,
-  findEventById
-);
+
 router.put(
   "/event/:eventTitle",
   auth,
@@ -61,7 +54,6 @@ router.delete(
 router.get(
   "/event",
   auth, 
-  checkRole(CUSTOMER_ROLE),
   validateEventTitle,
   viewEventDetails
 )
@@ -69,7 +61,6 @@ router.get(
 router.get(
   "/events",
   auth,
-  checkRole(CUSTOMER_ROLE),
   viewAllEvents
 )
 
@@ -77,13 +68,12 @@ router.get(
   "/eo/events",
   auth,
   checkRole(EO_ROLE),
-  viewAllEventsEo
+  viewEventsByEo
 )
 
 router.get(
-  "/eo/events/filtered",
+  "/events/filtered",
   auth,
-  checkRole(EO_ROLE),
   viewAllEventsWithFilter
 )
 
