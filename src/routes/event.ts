@@ -3,7 +3,7 @@ import {
   createEvent,
   updateEventByTitle,
   deleteEventByIdEo,
-  deleteEventByeventTitleAdmin,
+  deleteEventByIdAdmin,
   viewEventDetails,
   viewAllEvents,
   viewAllEventsWithFilter,
@@ -46,16 +46,16 @@ router.delete(
   "/eo/events/:eventId",
   auth,
   checkRole(EO_ROLE),
-  validateEventTitle,
+  validateEventId,
   deleteEventByIdEo
 );
 
 router.delete(
-  "/admin/events",
+  "/admin/events/:eventId",
   auth,
   checkRole(ADMIN_ROLE),
-  validateEventTitle,
-  deleteEventByeventTitleAdmin
+  validateEventId,
+  deleteEventByIdAdmin
 );
 
 router.get("/event", auth, validateEventTitle, viewEventDetails);

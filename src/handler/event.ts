@@ -120,19 +120,16 @@ export const deleteEventByIdEo = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteEventByeventTitleAdmin = async (
-  req: Request,
-  res: Response
-) => {
-  const selectedEventTitle = req.query.eventTitle;
+export const deleteEventByIdAdmin = async (req: Request, res: Response) => {
+  const eventId = req.params.eventId;
   try {
-    const deletedEvent = await Event.findOneAndDelete(selectedEventTitle);
+    const deletedEvent = await Event.findByIdAndDelete(eventId);
 
     if (!deletedEvent) {
       return sendResponse(
         res,
         StatusCodes.NOT_FOUND,
-        `Event with title ${selectedEventTitle} not found`,
+        `Event with id ${eventId} not found`,
         null
       );
     }
@@ -140,7 +137,7 @@ export const deleteEventByeventTitleAdmin = async (
     return sendResponse(
       res,
       StatusCodes.NO_CONTENT,
-      `Event with title ${selectedEventTitle} deleted successfully`,
+      `Event with id ${eventId} deleted successfully`,
       null
     );
   } catch (error) {
@@ -150,7 +147,7 @@ export const deleteEventByeventTitleAdmin = async (
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error deleting event by title", error);
+    logError(req, res, "Error deleting event ", error);
   }
 };
 
