@@ -1,22 +1,29 @@
-import express from 'express';
-import { createEvent, updateEventByTitle, deleteEventByeventTitleEo, deleteEventByeventTitleAdmin,
+import express from "express";
+import {
+  createEvent,
+  updateEventByTitle,
+  deleteEventByIdEo,
+  deleteEventByeventTitleAdmin,
   viewEventDetails,
   viewAllEvents,
   viewAllEventsWithFilter,
-  viewEventsByEo
- } from '../handler/event';
-import { validateEventData, validateEventId, validateEventTitle } from '../middleware/event';
-import { auth } from '../middleware/auth';
-import { checkRole} from 'middleware/check_role/';
-import { singleUpload } from 'middleware/upload/';
-import { uploadSingleFile } from 'handler/file/';
+  viewEventsByEo,
+} from "../handler/event";
+import {
+  validateEventData,
+  validateEventId,
+  validateEventTitle,
+} from "../middleware/event";
+import { auth } from "../middleware/auth";
+import { checkRole } from "middleware/check_role/";
+import { singleUpload } from "middleware/upload/";
+import { uploadSingleFile } from "handler/file/";
 
 const router = express.Router();
 
 const EO_ROLE = "eo";
 const ADMIN_ROLE = "admin";
 const CUSTOMER_ROLE = "customer";
-
 
 router.post(
   "/poster",
@@ -36,11 +43,11 @@ router.put(
   updateEventByTitle
 );
 router.delete(
-  "/eo/events",
+  "/eo/events/:eventId",
   auth,
   checkRole(EO_ROLE),
   validateEventTitle,
-  deleteEventByeventTitleEo
+  deleteEventByIdEo
 );
 
 router.delete(
@@ -51,30 +58,12 @@ router.delete(
   deleteEventByeventTitleAdmin
 );
 
-router.get(
-  "/event",
-  auth, 
-  validateEventTitle,
-  viewEventDetails
-)
+router.get("/event", auth, validateEventTitle, viewEventDetails);
 
-router.get(
-  "/events",
-  auth,
-  viewAllEvents
-)
+router.get("/events", auth, viewAllEvents);
 
-router.get(
-  "/eo/events",
-  auth,
-  checkRole(EO_ROLE),
-  viewEventsByEo
-)
+router.get("/eo/events", auth, checkRole(EO_ROLE), viewEventsByEo);
 
-router.get(
-  "/events/filtered",
-  auth,
-  viewAllEventsWithFilter
-)
+router.get("/events/filtered", auth, viewAllEventsWithFilter);
 
 export default router;

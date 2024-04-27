@@ -84,24 +84,21 @@ export const updateEventByTitle = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteEventByeventTitleEo = async (
-  req: Request,
-  res: Response
-) => {
-  const selectedEventTitle = req.query.eventTitle;
-  const userID = req.user._id;
+export const deleteEventByIdEo = async (req: Request, res: Response) => {
+  const eventId = req.params.eventId;
+  const userId = req.user._id;
 
   try {
     const deletedEvent = await Event.findOneAndDelete({
-      eventTitle: selectedEventTitle,
-      ownerId: userID,
+      _id: eventId,
+      ownerId: userId,
     });
 
     if (!deletedEvent) {
       return sendResponse(
         res,
         StatusCodes.NOT_FOUND,
-        `Event with title ${selectedEventTitle} not found`,
+        `Event with id ${eventId} not found`,
         null
       );
     }
@@ -109,7 +106,7 @@ export const deleteEventByeventTitleEo = async (
     return sendResponse(
       res,
       StatusCodes.NO_CONTENT,
-      `Event with title ${selectedEventTitle} deleted successfully`,
+      `Event with title ${eventId} deleted successfully`,
       null
     );
   } catch (error) {
@@ -119,7 +116,7 @@ export const deleteEventByeventTitleEo = async (
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error deleting event by title", error);
+    logError(req, res, "Error deleting event by id", error);
   }
 };
 
@@ -183,81 +180,39 @@ export const viewEventDetails = async (req: Request, res: Response) => {
 };
 
 export const viewAllEvents = async (req: Request, res: Response) => {
-  const { value: {page, limit}, error } = pagiantionSchema.validate(req.query);
+  const {
+    value: { page, limit },
+    error,
+  } = pagiantionSchema.validate(req.query);
   if (error) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message,null);
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
   }
 
   try {
     const skip = (page - 1) * limit;
     const [events, totalEvents] = await Promise.all([
-      Event.find({})
-        .sort({ startDate: 1 }) 
-        .skip(skip)
-        .limit(limit),
-      Event.countDocuments()
+      Event.find({}).sort({ startDate: 1 }).skip(skip).limit(limit),
+      Event.countDocuments(),
     ]);
-       const totalPages = Math.ceil(totalEvents / limit)
-        // Check if the requested page exceeds the total pages
-        if (page > totalPages) {
-          return sendResponse(res, StatusCodes.BAD_REQUEST, "Requested page exceeds the total number of pages, no events to show.", {
-            events: [],
-            totalEvents,
-            currentPage: page,
-            totalPages
-          });
-        }
-    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
-      events,
-      totalEvents,
-      currentPage: page,
-      totalPages: totalPages,
-    });
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error fetching events", error);
-  }
-};
-
-export const viewEventsByEo = async (req: Request, res: Response) => {
-  const { value: {page, limit, status}, error } = statusAndPaginationSchema.validate(req.query);
-
-  if (error) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message,null);
-  }
-  const userId = req.user._id;
-
-  let queryConditions:any = { ownerId: userId }; 
-  const currentDate = new Date().getTime();
-
-  if (status === "upcoming") {
-    queryConditions.startDate = { $gte: currentDate }; 
-  } else if (status === "past") {
-    queryConditions.startDate = { $lt: currentDate }; 
-  }
-
-  try {
-    const query = Event.find(queryConditions).sort({ startDate: 1 });
-    const startIndex = (page - 1) * limit;
-    const [events, totalEvents] = await Promise.all([
-      query.skip(startIndex).limit(limit).exec(),
-      Event.countDocuments(queryConditions) 
-    ]);
-
-    const totalPages = Math.ceil(totalEvents / limit)
+    const totalPages = Math.ceil(totalEvents / limit);
     // Check if the requested page exceeds the total pages
     if (page > totalPages) {
-      return sendResponse(res, StatusCodes.BAD_REQUEST, "Requested page exceeds the total number of pages, no events to show.", {
-        events: [],
-        totalEvents,
-        currentPage: page,
-        totalPages
-      });
+      return sendResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Requested page exceeds the total number of pages, no events to show.",
+        {
+          events: [],
+          totalEvents,
+          currentPage: page,
+          totalPages,
+        }
+      );
     }
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
       events,
@@ -276,22 +231,97 @@ export const viewEventsByEo = async (req: Request, res: Response) => {
   }
 };
 
+export const viewEventsByEo = async (req: Request, res: Response) => {
+  const {
+    value: { page, limit, status },
+    error,
+  } = statusAndPaginationSchema.validate(req.query);
+
+  if (error) {
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
+  }
+  const userId = req.user._id;
+
+  let queryConditions: any = { ownerId: userId };
+  const currentDate = new Date().getTime();
+
+  if (status === "upcoming") {
+    queryConditions.startDate = { $gte: currentDate };
+  } else if (status === "past") {
+    queryConditions.startDate = { $lt: currentDate };
+  }
+
+  try {
+    const query = Event.find(queryConditions).sort({ startDate: 1 });
+    const startIndex = (page - 1) * limit;
+    const [events, totalEvents] = await Promise.all([
+      query.skip(startIndex).limit(limit).exec(),
+      Event.countDocuments(queryConditions),
+    ]);
+
+    const totalPages = Math.ceil(totalEvents / limit);
+    // Check if the requested page exceeds the total pages
+    if (page > totalPages) {
+      return sendResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Requested page exceeds the total number of pages, no events to show.",
+        {
+          events: [],
+          totalEvents,
+          currentPage: page,
+          totalPages,
+        }
+      );
+    }
+    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+      events,
+      totalEvents,
+      currentPage: page,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "Error fetching events", error);
+  }
+};
 
 export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
   const { error, value } = eventFilterSchema.validate(req.query);
   let queryConditions: any = {};
 
   if (error) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, null);
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
   }
   if (value.searchByEventTitle) {
-    queryConditions.eventTitle = { $regex: value.searchByEventTitle, $options: "i" };
+    queryConditions.eventTitle = {
+      $regex: value.searchByEventTitle,
+      $options: "i",
+    };
   }
   if (value.location) {
     queryConditions.location = { $regex: value.location, $options: "i" };
   }
   if (value.startDate && value.endDate) {
-    queryConditions.startDate = { $gte: new Date(value.startDate), $lte: new Date(value.endDate) };
+    queryConditions.startDate = {
+      $gte: new Date(value.startDate),
+      $lte: new Date(value.endDate),
+    };
   }
 
   try {
@@ -301,27 +331,37 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
         .skip((value.page - 1) * value.limit)
         .limit(value.limit)
         .exec(),
-      Event.countDocuments(queryConditions)
+      Event.countDocuments(queryConditions),
     ]);
 
-    const totalPages = Math.ceil(totalEvents / value.limit)
+    const totalPages = Math.ceil(totalEvents / value.limit);
     // Check if the requested page exceeds the total pages
     if (value.page > totalPages) {
-      return sendResponse(res, StatusCodes.BAD_REQUEST, "Requested page exceeds the total number of pages, no events to show.", {
-        events: [],
-        totalEvents,
-        currentPage: value.page,
-        totalPages
-      }
-      )};
+      return sendResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Requested page exceeds the total number of pages, no events to show.",
+        {
+          events: [],
+          totalEvents,
+          currentPage: value.page,
+          totalPages,
+        }
+      );
+    }
 
-     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
       events,
       page: value.page,
-      totalPages: Math.ceil(totalPages / value.limit)
+      totalPages: Math.ceil(totalPages / value.limit),
     });
   } catch (error) {
-    return sendResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error", null);
+    return sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal server error",
+      null
+    );
   }
 };
 
@@ -354,26 +394,30 @@ function logError(
 // input validation using Joi
 const pagiantionSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(25)
+  limit: Joi.number().integer().min(1).max(100).default(25),
 });
 
 const statusAndPaginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
-  status: Joi.string().valid('upcoming', 'past').optional()
+  status: Joi.string().valid("upcoming", "past").optional(),
 });
 
 const eventFilterSchema = Joi.object({
   searchByEventTitle: Joi.string().trim().optional(),
   location: Joi.string().trim().optional(),
   startDate: Joi.date().iso().optional(),
-  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional(),
+  endDate: Joi.date().iso().min(Joi.ref("startDate")).optional(),
   page: Joi.alternatives([
     Joi.number().integer().min(1),
-    Joi.string().trim().custom(value => parseInt(value, 10), 'custom number parsing')
+    Joi.string()
+      .trim()
+      .custom((value) => parseInt(value, 10), "custom number parsing"),
   ]).default(1),
   limit: Joi.alternatives([
     Joi.number().integer().min(1).max(100),
-    Joi.string().trim().custom(value => parseInt(value, 10), 'custom number parsing')
-  ]).default(25)
+    Joi.string()
+      .trim()
+      .custom((value) => parseInt(value, 10), "custom number parsing"),
+  ]).default(25),
 });
