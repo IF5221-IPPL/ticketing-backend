@@ -9,9 +9,16 @@ const CONSTANT = {
   DEFAULT_ACCCESS_LOG_FILE_PATH: "logs/access.log",
   DEFAULT_JWT_EXPIRES_IN: "1d",
 
-  EO_ROLE: "eo",
-  ADMIN_ROLE: "admin",
-  CUSTOMER_ROLE: "customer",
+  ROLE:{
+    EO: "eo",
+    ADMIN: "admin",
+    CUSTOMER: "customer",
+  },
+
+  STATUS_EVENT: {
+    UPCOMING: "upcoming",
+    PAST : "past",
+  }
 };
 
 export default CONSTANT;

@@ -4,6 +4,7 @@ import { Logger } from "pkg/logger/";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
+import CONSTANT from "entity/const/";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -44,11 +45,10 @@ export const updateEventById = async (req: Request, res: Response) => {
     const eventId = req.params.eventId;
     const updateEvent = req.body;
 
-    const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      updateEvent,
-      {new: true, runValidators: true}
-    );
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, updateEvent, {
+      new: true,
+      runValidators: true,
+    });
 
     return sendResponse(
       res,
@@ -147,7 +147,12 @@ export const viewEventDetails = async (req: Request, res: Response) => {
         null
       );
     }
-    return sendResponse(res, StatusCodes.OK, "Event details retrieved successfully", event);
+    return sendResponse(
+      res,
+      StatusCodes.OK,
+      "Event details retrieved successfully",
+      event
+    );
   } catch (error) {
     sendResponse(
       res,
@@ -161,82 +166,67 @@ export const viewEventDetails = async (req: Request, res: Response) => {
 
 export const viewEvents = async (req: Request, res: Response) => {
   const userRole = req.user.role;
-  console.log(userRole);
-  const EO_ROLE = "eo"; // Define the Event Organizer role as per your application
-
-  // Common pagination validation
-  const paginationSchema = userRole === EO_ROLE ? statusAndPaginationSchema : pagiantionSchema;
+  const paginationSchema =
+    userRole === CONSTANT.ROLE.EO
+      ? statusAndPaginationSchema
+      : pagiantionSchema;
   const {
-      value: { page, limit, status }, // 'status' will be undefined if not provided by a non-EO user
-      error,
+    value: { page, limit, status }, // 'status' will be undefined if not provided by a non-EO user
+    error,
   } = paginationSchema.validate(req.query);
 
   if (error) {
-      return sendResponse(
-          res,
-          StatusCodes.BAD_REQUEST,
-          error.details[0].message,
-          null
-      );
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
   }
 
   try {
-      let queryConditions: any= {};
-      const skip = (page - 1) * limit;
+    let queryConditions: any = {};
+    const skip = (page - 1) * limit;
 
-      // Additional condition for event organizers
-      if (userRole === EO_ROLE) {
-          const userId = req.user._id; // Assuming you store user ID on the request's user object
-          queryConditions = { ownerId: userId };
+    if (userRole === CONSTANT.ROLE.EO) {
+      const userId = req.user._id;
+      queryConditions = { ownerId: userId };
 
-          const currentDate = new Date().getTime();
-          if (status === "upcoming") {
-              queryConditions.startDate = { $gte: currentDate };
-          } else if (status === "past") {
-              queryConditions.startDate = { $lt: currentDate };
-          }
+      const currentDate = new Date().getTime();
+      if (status === CONSTANT.STATUS_EVENT.UPCOMING) {
+        queryConditions.startDate = { $gte: currentDate };
+      } else if (status === CONSTANT.STATUS_EVENT.PAST) {
+        queryConditions.startDate = { $lt: currentDate };
       }
+    }
 
-      // Prepare query
-      const query = Event.find(queryConditions).sort({ startDate: 1 });
+    const query = Event.find(queryConditions).sort({ startDate: 1 });
 
-      // Execute query and count in parallel
-      const [events, totalEvents] = await Promise.all([
-          query.skip(skip).limit(limit),
-          Event.countDocuments(queryConditions),
-      ]);
+    const [events, totalEvents] = await Promise.all([
+      query.skip(skip).limit(limit),
+      Event.countDocuments(queryConditions),
+    ]);
 
-      const totalPages = Math.ceil(totalEvents / limit);
+    const totalPages = Math.ceil(totalEvents / limit);
 
-      // Check if the requested page exceeds the total pages
-      if (page > totalPages && totalPages != 0) {
-          return sendResponse(
-              res,
-              StatusCodes.BAD_REQUEST,
-              "Requested page exceeds the total number of pages, no events to show.",
-              {
-                  events: [],
-                  totalEvents,
-                  currentPage: page,
-                  totalPages,
-              }
-          );
-      }
-
-      return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
-          events,
-          totalEvents,
-          currentPage: page,
-          totalPages: totalPages,
-      });
+    //Prevent sending multiple responses
+    if (handlePaginationError(res, page, totalPages)) {
+      return;
+    }
+    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+      events,
+      totalEvents,
+      currentPage: page,
+      totalPages: totalPages,
+    });
   } catch (error) {
-      sendResponse(
-          res,
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Internal Server Error",
-          null
-      );
-      logError(req, res, "Error fetching events", error);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+    logError(req, res, "Error fetching events", error);
   }
 };
 
@@ -279,19 +269,10 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
     ]);
 
     const totalPages = Math.ceil(totalEvents / value.limit);
-    // Check if the requested page exceeds the total pages
-    if (value.page > totalPages) {
-      return sendResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Requested page exceeds the total number of pages, no events to show.",
-        {
-          events: [],
-          totalEvents,
-          currentPage: value.page,
-          totalPages,
-        }
-      );
+
+    //Prevent sending multiple responses
+    if (handlePaginationError(res, value.page, totalPages)) {
+      return;
     }
 
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
@@ -334,6 +315,28 @@ function logError(
     },
   });
 }
+
+const handlePaginationError = (
+  res: Response,
+  page: number,
+  totalPages: number
+) => {
+  if (page > totalPages && totalPages != 0) {
+    sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      "Requested page exceeds the total number of pages, no events to show.",
+      {
+        events: [],
+        totalEvents: 0,
+        currentPage: page,
+        totalPages,
+      }
+    );
+    return true;
+  }
+  return false;
+};
 
 // input validation using Joi
 const pagiantionSchema = Joi.object({

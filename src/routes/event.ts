@@ -13,17 +13,15 @@ import { auth } from "../middleware/auth";
 import { checkRole } from "middleware/check_role/";
 import { singleUpload } from "middleware/upload/";
 import { uploadSingleFile } from "handler/file/";
+import CONSTANT from "entity/const/";
+
 
 const router = express.Router();
-
-const EO_ROLE = "eo";
-const ADMIN_ROLE = "admin";
-const CUSTOMER_ROLE = "customer";
 
 router.post(
   "/posters",
   auth,
-  checkRole(EO_ROLE),
+  checkRole(CONSTANT.ROLE.EO),
   singleUpload,
   uploadSingleFile
 );
@@ -31,7 +29,7 @@ router.post(
 router.post(
   "/events",
   auth,
-  checkRole(EO_ROLE),
+  checkRole(CONSTANT.ROLE.EO),
   validateEventData,
   createEvent
 );
@@ -39,7 +37,7 @@ router.post(
 router.put(
   "/events/:eventId",
   auth,
-  checkRole(EO_ROLE),
+  checkRole(CONSTANT.ROLE.EO),
   validateEventId,
   validateEventData,
   updateEventById
@@ -48,7 +46,7 @@ router.put(
 router.delete(
   "/eo/events/:eventId",
   auth,
-  checkRole(EO_ROLE),
+  checkRole(CONSTANT.ROLE.EO),
   validateEventId,
   deleteEventByIdEo
 );
@@ -56,7 +54,7 @@ router.delete(
 router.delete(
   "/admin/events/:eventId",
   auth,
-  checkRole(ADMIN_ROLE),
+  checkRole(CONSTANT.ROLE.ADMIN),
   validateEventId,
   deleteEventByIdAdmin
 );
