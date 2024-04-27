@@ -26,8 +26,6 @@ const eventSchema = Joi.object({
   promotionalContent: promotionalContentSchema,
 });
 
-const eventTitleSchema = Joi.string().alphanum();
-
 export const validateEventData = (
   req: Request,
   res: Response,
@@ -52,18 +50,6 @@ export const validateEventId = (
 ) => {
   if (!isValidObjectId(req.params.eventId)) {
     return sendResponse(res, StatusCodes.BAD_REQUEST, "Invalid event ID", null);
-  }
-  next();
-};
-
-export const validateEventTitle = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { error } = eventTitleSchema.validate(req.param.eventTitle);
-  if (error) {
-    return sendResponse(res, StatusCodes.BAD_REQUEST, "Invalid event title", null);
   }
   next();
 };
