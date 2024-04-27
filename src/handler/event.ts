@@ -38,77 +38,21 @@ export const createEvent = async (req: Request, res: Response) => {
   }
 };
 
-export const readEvents = async (req: Request, res: Response) => {
+export const updateEventById = async (req: Request, res: Response) => {
   try {
-    const events = await Event.find();
-    return sendResponse(res, StatusCodes.OK, null, events);
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error fetching events", error);
-  }
-};
+    const eventId = req.params.eventId;
+    const updateEvent = req.body;
 
-export const findEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-  try {
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return sendResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
-        null
-      );
-    }
-    return sendResponse(res, StatusCodes.OK, null, event);
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error finding event by ID", error);
-  }
-};
-
-export const updateEventByTitle = async (req: Request, res: Response) => {
-  try {
-    const { eventTitle } = req.params;
-    const existingEvent = await Event.findOne({ eventTitle });
-    if (!existingEvent) {
-      return sendResponse(res, StatusCodes.NOT_FOUND, "Event not found", null);
-    };
-
-    const existingEventWithNewTitle = await Event.findOne({
-      eventTitle: req.body.eventTitle,
-      _id: { $ne: existingEvent._id }, 
-    });
-
-    if (existingEventWithNewTitle) {
-      return sendResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Event title already exists, please find another title! ",
-        null
-      );
-    }
-
-    const updatedEvent = await Event.findOneAndUpdate(
-      { eventTitle },
-      { $set: req.body },
-      { new: true }
+    const updatedEvent = await Event.findByIdAndUpdate(
+      eventId,
+      updateEvent,
+      {new: true, runValidators: true}
     );
 
     return sendResponse(
       res,
       StatusCodes.OK,
-      `Event with title ${eventTitle} successfully updated!`,
+      `Event with Id ${eventId} successfully updated!`,
       updatedEvent
     );
   } catch (error) {
@@ -118,39 +62,7 @@ export const updateEventByTitle = async (req: Request, res: Response) => {
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error updating event by title", error);
-  }
-};
-
-export const deleteEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-
-  try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
-
-    if (!deletedEvent) {
-      return sendResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
-        null
-      );
-    }
-
-    return sendResponse(
-      res,
-      StatusCodes.NO_CONTENT,
-      "Event deleted successfully",
-      null
-    );
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error deleting event by ID", error);
+    logError(req, res, "Error updating event with Id", error);
   }
 };
 
