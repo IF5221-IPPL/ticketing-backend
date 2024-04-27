@@ -7,9 +7,10 @@ import { StatusCodes } from "http-status-codes";
 import { Logger } from "pkg/logger/";
 
 export const generateDescByGPT = async (req: Request, res: Response) => {
-  const openai = new OpenAI({apiKey:`${process.env.GPT_API_KEY}`});
+  const openai = new OpenAI({ apiKey: `${process.env.GPT_API_KEY}` });
   const gptReq: IGptRequest = req.body;
   const { error, value } = gptRequestSchema.validate(gptReq);
+  let messagesPayload: any= {};
   if (error) {
     return sendResponse(
       res,
@@ -18,10 +19,12 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
       null
     );
   }
-
+ 
+ messagesPayload.role = "system";
+ messagesPayload.content = value.text;
   try {
     const completion = await openai.chat.completions.create({
-      messages: value.messages,
+      messages: [messagesPayload],
       model: "gpt-3.5-turbo",
     });
 
@@ -53,13 +56,5 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
 // Validation schema
 const gptRequestSchema = Joi.object({
   userId: Joi.string().required(),
-  messages: Joi.array()
-    .items(
-      Joi.object({
-        role: Joi.string().valid("user", "assistant").required(),
-        content: Joi.string().required(),
-      })
-    )
-    .min(1)
-    .required(),
+  text: Joi.string().required(),
 });
