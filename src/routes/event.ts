@@ -5,9 +5,8 @@ import {
   deleteEventByIdEo,
   deleteEventByIdAdmin,
   viewEventDetails,
-  viewAllEvents,
+  viewEvents,
   viewAllEventsWithFilter,
-  viewEventsByEo,
 } from "../handler/event";
 import { validateEventData, validateEventId } from "../middleware/event";
 import { auth } from "../middleware/auth";
@@ -64,9 +63,7 @@ router.delete(
 
 router.get("/events/:eventId", auth, validateEventId, viewEventDetails);
 
-router.get("/events", auth, viewAllEvents);
-
-router.get("/events", auth, checkRole(EO_ROLE), viewEventsByEo);
+router.get("/events", auth, viewEvents);
 
 router.get("/events/filtered", auth, viewAllEventsWithFilter);
 

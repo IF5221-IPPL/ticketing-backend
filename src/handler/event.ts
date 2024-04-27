@@ -159,120 +159,84 @@ export const viewEventDetails = async (req: Request, res: Response) => {
   }
 };
 
-export const viewAllEvents = async (req: Request, res: Response) => {
+export const viewEvents = async (req: Request, res: Response) => {
+  const userRole = req.user.role;
+  console.log(userRole);
+  const EO_ROLE = "eo"; // Define the Event Organizer role as per your application
+
+  // Common pagination validation
+  const paginationSchema = userRole === EO_ROLE ? statusAndPaginationSchema : pagiantionSchema;
   const {
-    value: { page, limit },
-    error,
-  } = pagiantionSchema.validate(req.query);
+      value: { page, limit, status }, // 'status' will be undefined if not provided by a non-EO user
+      error,
+  } = paginationSchema.validate(req.query);
+
   if (error) {
-    return sendResponse(
-      res,
-      StatusCodes.BAD_REQUEST,
-      error.details[0].message,
-      null
-    );
+      return sendResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          error.details[0].message,
+          null
+      );
   }
 
   try {
-    const skip = (page - 1) * limit;
-    const [events, totalEvents] = await Promise.all([
-      Event.find({}).sort({ startDate: 1 }).skip(skip).limit(limit),
-      Event.countDocuments(),
-    ]);
-    const totalPages = Math.ceil(totalEvents / limit);
-    // Check if the requested page exceeds the total pages
-    if (page > totalPages) {
-      return sendResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Requested page exceeds the total number of pages, no events to show.",
-        {
-          events: [],
+      let queryConditions: any= {};
+      const skip = (page - 1) * limit;
+
+      // Additional condition for event organizers
+      if (userRole === EO_ROLE) {
+          const userId = req.user._id; // Assuming you store user ID on the request's user object
+          queryConditions = { ownerId: userId };
+
+          const currentDate = new Date().getTime();
+          if (status === "upcoming") {
+              queryConditions.startDate = { $gte: currentDate };
+          } else if (status === "past") {
+              queryConditions.startDate = { $lt: currentDate };
+          }
+      }
+
+      // Prepare query
+      const query = Event.find(queryConditions).sort({ startDate: 1 });
+
+      // Execute query and count in parallel
+      const [events, totalEvents] = await Promise.all([
+          query.skip(skip).limit(limit),
+          Event.countDocuments(queryConditions),
+      ]);
+
+      const totalPages = Math.ceil(totalEvents / limit);
+
+      // Check if the requested page exceeds the total pages
+      if (page > totalPages && totalPages != 0) {
+          return sendResponse(
+              res,
+              StatusCodes.BAD_REQUEST,
+              "Requested page exceeds the total number of pages, no events to show.",
+              {
+                  events: [],
+                  totalEvents,
+                  currentPage: page,
+                  totalPages,
+              }
+          );
+      }
+
+      return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+          events,
           totalEvents,
           currentPage: page,
-          totalPages,
-        }
-      );
-    }
-    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
-      events,
-      totalEvents,
-      currentPage: page,
-      totalPages: totalPages,
-    });
+          totalPages: totalPages,
+      });
   } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error fetching events", error);
-  }
-};
-
-export const viewEventsByEo = async (req: Request, res: Response) => {
-  const {
-    value: { page, limit, status },
-    error,
-  } = statusAndPaginationSchema.validate(req.query);
-
-  if (error) {
-    return sendResponse(
-      res,
-      StatusCodes.BAD_REQUEST,
-      error.details[0].message,
-      null
-    );
-  }
-  const userId = req.user._id;
-
-  let queryConditions: any = { ownerId: userId };
-  const currentDate = new Date().getTime();
-
-  if (status === "upcoming") {
-    queryConditions.startDate = { $gte: currentDate };
-  } else if (status === "past") {
-    queryConditions.startDate = { $lt: currentDate };
-  }
-
-  try {
-    const query = Event.find(queryConditions).sort({ startDate: 1 });
-    const startIndex = (page - 1) * limit;
-    const [events, totalEvents] = await Promise.all([
-      query.skip(startIndex).limit(limit).exec(),
-      Event.countDocuments(queryConditions),
-    ]);
-
-    const totalPages = Math.ceil(totalEvents / limit);
-    // Check if the requested page exceeds the total pages
-    if (page > totalPages) {
-      return sendResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Requested page exceeds the total number of pages, no events to show.",
-        {
-          events: [],
-          totalEvents,
-          currentPage: page,
-          totalPages,
-        }
+      sendResponse(
+          res,
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Internal Server Error",
+          null
       );
-    }
-    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
-      events,
-      totalEvents,
-      currentPage: page,
-      totalPages: totalPages,
-    });
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error fetching events", error);
+      logError(req, res, "Error fetching events", error);
   }
 };
 
