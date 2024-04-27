@@ -81,6 +81,8 @@ export const deleteEvent = async (req: Request, res: Response) => {
       });
     } else if (userRole === CONSTANT.ROLE.ADMIN) {
       deletedEvent = await Event.findByIdAndDelete(eventId);
+    } else {
+      return sendResponse(res, StatusCodes.UNAUTHORIZED, "Unauthorized", null);
     }
 
     if (!deletedEvent) {
