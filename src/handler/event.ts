@@ -6,10 +6,27 @@ import { StatusCodes } from "http-status-codes";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    req.body.ownerId = req.user;
-    const event = new Event(req.body);
-    await event.save();
-    sendResponse(res, StatusCodes.CREATED, "Event created successfully", event);
+    const existingEventTitle = await Event.findOne({
+      eventTitle: req.body.eventTitle,
+    });
+    if (existingEventTitle) {
+      return sendResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Event already exists",
+        null
+      );
+    } else {
+      req.body.ownerId = req.user._id;
+      const event = new Event(req.body);
+      await event.save();
+      return sendResponse(
+        res,
+        StatusCodes.CREATED,
+        "Event created successfully",
+        event
+      );
+    }
   } catch (error) {
     sendResponse(
       res,
@@ -21,68 +38,21 @@ export const createEvent = async (req: Request, res: Response) => {
   }
 };
 
-export const readEvents = async (req: Request, res: Response) => {
-  try {
-    const events = await Event.find();
-    sendResponse(res, StatusCodes.OK, null, events);
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error fetching events", error);
-  }
-};
-
-export const findEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-
-  try {
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return sendResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
-        null
-      );
-    }
-    sendResponse(res, StatusCodes.OK, null, event);
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error finding event by ID", error);
-  }
-};
-
 export const updateEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-  const updateData = req.body;
-
   try {
-    const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, {
-      new: true,
-    });
+    const eventId = req.params.eventId;
+    const updateEvent = req.body;
 
-    if (!updatedEvent) {
-      return sendResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
-        null
-      );
-    }
+    const updatedEvent = await Event.findByIdAndUpdate(
+      eventId,
+      updateEvent,
+      {new: true, runValidators: true}
+    );
 
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.OK,
-      `Successfully updated event with ID ${eventId}`,
+      `Event with Id ${eventId} successfully updated!`,
       updatedEvent
     );
   } catch (error) {
@@ -92,39 +62,7 @@ export const updateEventById = async (req: Request, res: Response) => {
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error updating event by ID", error);
-  }
-};
-
-export const deleteEventById = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-
-  try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
-
-    if (!deletedEvent) {
-      return sendResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        `Event with ID ${eventId} not found`,
-        null
-      );
-    }
-
-    sendResponse(
-      res,
-      StatusCodes.NO_CONTENT,
-      "Event deleted successfully",
-      null
-    );
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error deleting event by ID", error);
+    logError(req, res, "Error updating event with Id", error);
   }
 };
 
