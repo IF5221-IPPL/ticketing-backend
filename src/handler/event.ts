@@ -67,15 +67,21 @@ export const updateEventById = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteEventByIdEo = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
+export const deleteEvent = async (req: Request, res: Response) => {
+  const userRole = req.user.role;
   const userId = req.user._id;
+  const eventId = req.params.eventId;
+  let deletedEvent;
 
   try {
-    const deletedEvent = await Event.findOneAndDelete({
-      _id: eventId,
-      ownerId: userId,
-    });
+    if (userRole === CONSTANT.ROLE.EO) {
+      deletedEvent = await Event.findOneAndDelete({
+        _id: eventId,
+        ownerId: userId,
+      });
+    } else if (userRole === CONSTANT.ROLE.ADMIN) {
+      deletedEvent = await Event.findByIdAndDelete(eventId);
+    }
 
     if (!deletedEvent) {
       return sendResponse(
@@ -100,37 +106,6 @@ export const deleteEventByIdEo = async (req: Request, res: Response) => {
       null
     );
     logError(req, res, "Error deleting event by id", error);
-  }
-};
-
-export const deleteEventByIdAdmin = async (req: Request, res: Response) => {
-  const eventId = req.params.eventId;
-  try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
-
-    if (!deletedEvent) {
-      return sendResponse(
-        res,
-        StatusCodes.NOT_FOUND,
-        `Event with id ${eventId} not found`,
-        null
-      );
-    }
-
-    return sendResponse(
-      res,
-      StatusCodes.NO_CONTENT,
-      `Event with id ${eventId} deleted successfully`,
-      null
-    );
-  } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-    logError(req, res, "Error deleting event ", error);
   }
 };
 

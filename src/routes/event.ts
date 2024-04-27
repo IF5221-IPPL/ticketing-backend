@@ -2,8 +2,7 @@ import express from "express";
 import {
   createEvent,
   updateEventById,
-  deleteEventByIdEo,
-  deleteEventByIdAdmin,
+  deleteEvent,
   viewEventDetails,
   viewEvents,
   viewAllEventsWithFilter,
@@ -43,19 +42,10 @@ router.put(
 );
 
 router.delete(
-  "/eo/events/:eventId",
+  "/events/:eventId",
   auth,
-  checkRole(CONSTANT.ROLE.EO),
   validateEventId,
-  deleteEventByIdEo
-);
-
-router.delete(
-  "/admin/events/:eventId",
-  auth,
-  checkRole(CONSTANT.ROLE.ADMIN),
-  validateEventId,
-  deleteEventByIdAdmin
+  deleteEvent
 );
 
 // should put here, Don't Change this hierarchy.
