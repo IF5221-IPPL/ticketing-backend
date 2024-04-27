@@ -15,7 +15,6 @@ import { singleUpload } from "middleware/upload/";
 import { uploadSingleFile } from "handler/file/";
 import CONSTANT from "entity/const/";
 
-
 const router = express.Router();
 
 router.post(
@@ -59,10 +58,13 @@ router.delete(
   deleteEventByIdAdmin
 );
 
+// should put here, Don't Change this hierarchy.
+// Note: since route "/events/:eventId" can match "filtered" param,
+// we have to put "event/filtered" routes before "events/:eventId".
+router.get("/events/filtered", auth, viewAllEventsWithFilter);
+
 router.get("/events/:eventId", auth, validateEventId, viewEventDetails);
 
 router.get("/events", auth, viewEvents);
-
-router.get("/events/filtered", auth, viewAllEventsWithFilter);
 
 export default router;
