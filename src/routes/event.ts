@@ -11,21 +11,22 @@ const router = express.Router();
 const EO_ROLE = "eo";
 
 router.post(
-  "/poster",
+  "/posters",
   auth,
   checkRole(EO_ROLE),
   singleUpload,
   uploadSingleFile
 );
+
 router.post(
-  "/event", 
+  "/events", 
   auth, 
   checkRole(EO_ROLE), 
   validateEventData, 
   createEvent);
 
 router.put(
-  "/event/:eventTitle",
+  "/events/:eventId",
   auth,
   checkRole(EO_ROLE),
   validateEventId,
