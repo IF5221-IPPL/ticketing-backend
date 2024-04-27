@@ -152,19 +152,19 @@ export const deleteEventByIdAdmin = async (req: Request, res: Response) => {
 };
 
 export const viewEventDetails = async (req: Request, res: Response) => {
-  const selectedEventTitle = req.query.eventTitle;
+  const eventId = req.params.eventId;
 
   try {
-    const event = await Event.findOne({ eventTitle: selectedEventTitle });
+    const event = await Event.findById(eventId);
     if (!event) {
       return sendResponse(
         res,
         StatusCodes.NOT_FOUND,
-        `Event with title ${selectedEventTitle} not found`,
+        `Event with Id ${eventId} not found`,
         null
       );
     }
-    return sendResponse(res, StatusCodes.OK, null, event);
+    return sendResponse(res, StatusCodes.OK, "Event details retrieved successfully", event);
   } catch (error) {
     sendResponse(
       res,

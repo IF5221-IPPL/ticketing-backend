@@ -58,9 +58,9 @@ router.delete(
   deleteEventByIdAdmin
 );
 
-router.get("/event", auth, validateEventTitle, viewEventDetails);
+router.get("/events/:eventId", auth, validateEventId, viewEventDetails);
 
-router.get("/events", auth, viewAllEvents);
+router.get("/events", auth, validateEventId, viewAllEvents);
 
 router.get("/eo/events", auth, checkRole(EO_ROLE), viewEventsByEo);
 
