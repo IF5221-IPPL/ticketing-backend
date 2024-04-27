@@ -39,38 +39,21 @@ export const createEvent = async (req: Request, res: Response) => {
   }
 };
 
-export const updateEventByTitle = async (req: Request, res: Response) => {
+export const updateEventById = async (req: Request, res: Response) => {
   try {
-    const { eventTitle } = req.params;
-    const existingEvent = await Event.findOne({ eventTitle });
-    if (!existingEvent) {
-      return sendResponse(res, StatusCodes.NOT_FOUND, "Event not found", null);
-    }
+    const eventId = req.params.eventId;
+    const updateEvent = req.body;
 
-    const existingEventWithNewTitle = await Event.findOne({
-      eventTitle: req.body.eventTitle,
-      _id: { $ne: existingEvent._id },
-    });
-
-    if (existingEventWithNewTitle) {
-      return sendResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Event title already exists, please find another title! ",
-        null
-      );
-    }
-
-    const updatedEvent = await Event.findOneAndUpdate(
-      { eventTitle },
-      { $set: req.body },
-      { new: true }
+    const updatedEvent = await Event.findByIdAndUpdate(
+      eventId,
+      updateEvent,
+      {new: true, runValidators: true}
     );
 
     return sendResponse(
       res,
       StatusCodes.OK,
-      `Event with title ${eventTitle} successfully updated!`,
+      `Event with Id ${eventId} successfully updated!`,
       updatedEvent
     );
   } catch (error) {

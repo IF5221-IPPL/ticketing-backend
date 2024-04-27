@@ -26,6 +26,29 @@ const ADMIN_ROLE = "admin";
 const CUSTOMER_ROLE = "customer";
 
 router.post(
+  "/posters",
+  auth,
+  checkRole(EO_ROLE),
+  singleUpload,
+  uploadSingleFile
+);
+
+router.post(
+  "/events", 
+  auth, 
+  checkRole(EO_ROLE), 
+  validateEventData, 
+  createEvent);
+
+router.put(
+  "/events/:eventId",
+  auth,
+  checkRole(EO_ROLE),
+  validateEventId,
+  validateEventData,
+  updateEventById
+);
+router.post(
   "/poster",
   auth,
   checkRole(EO_ROLE),
