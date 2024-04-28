@@ -5,12 +5,18 @@ import Joi from "joi";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import { Logger } from "pkg/logger/";
+import CONSTANT from "entity/const/";
+
+
+// In-memory store for API call limits
+const userCallCounts: { [userId: string]: { count: number; resetTime: Date } } = {};
 
 export const generateDescByGPT = async (req: Request, res: Response) => {
   const openai = new OpenAI({ apiKey: `${process.env.GPT_API_KEY}` });
   const gptReq: IGptRequest = req.body;
   const { error, value } = gptRequestSchema.validate(gptReq);
-  let messagesPayload: any= {};
+  const userId = req.user._id;
+
   if (error) {
     return sendResponse(
       res,
@@ -19,14 +25,29 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
       null
     );
   }
+
  
- messagesPayload.role = "system";
- messagesPayload.content = value.text;
+  if (!canMakeApiCall(userId)) {
+    return sendResponse(
+      res,
+      StatusCodes.TOO_MANY_REQUESTS,
+      "API call limit reached for today",
+      null
+    );
+  }
+
+  const messagesPayload: any = {
+    role: CONSTANT.GPT_ROLE,
+    content: value.text
+  };
+
   try {
     const completion = await openai.chat.completions.create({
       messages: [messagesPayload],
-      model: "gpt-3.5-turbo",
+      model: CONSTANT.MODEL_GPT,
     });
+
+    incrementApiCallCount(userId);
 
     return sendResponse(
       res,
@@ -52,6 +73,21 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
     });
   }
 };
+
+function canMakeApiCall(userId: string): boolean {
+  const user = userCallCounts[userId];
+  const now = new Date();
+  if (!user || user.resetTime < now) {
+    // Reset or initialize the counter every day (don't care about the hour, only day)
+    userCallCounts[userId] = { count: 0, resetTime: new Date(now.setDate(now.getDate() + 1)) };
+    return true;
+  }
+  return user.count < CONSTANT.API_CALL_LIMIT;
+}
+
+function incrementApiCallCount(userId: string): void {
+  userCallCounts[userId].count += 1;
+}
 
 // Validation schema
 const gptRequestSchema = Joi.object({
