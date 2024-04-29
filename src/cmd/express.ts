@@ -13,6 +13,7 @@ import { StatusCodes } from "http-status-codes";
 import morganMiddleware from "../middleware/morgan";
 
 import eventRoutes from 'routes/event'; 
+import generate_description_routes from 'routes/generate_description';
 import { minioProxy } from "middleware/upload/";
 
 require("dotenv").config();
@@ -35,6 +36,7 @@ export default (app: Application) => {
 	app.use(`${process.env.PREFIX_API}/auth`, routes.AuthRoutes());
     app.use(process.env.PREFIX_API, eventRoutes); 
 	app.use(process.env.PREFIX_API, routes.FileRoutes());
+    app.use(process.env.PREFIX_API, generate_description_routes);
 
     app.use((_: Request, res: Response) => {
         return sendResponse(res, StatusCodes.NOT_FOUND, "Not Found", {});
