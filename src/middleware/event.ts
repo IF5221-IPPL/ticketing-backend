@@ -4,7 +4,7 @@ import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
 
-const categorySchema = Joi.object({
+const ticketsSchema = Joi.object({
   categoryName: Joi.string().required(),
   totalTickets: Joi.number().positive().required(),
   pricePerTicket: Joi.number().positive().required(),
@@ -22,7 +22,7 @@ const eventSchema = Joi.object({
   subTitle: Joi.string().trim().allow('').required(),
   endDate: Joi.date().greater(Joi.ref("startDate")).required(),
   location: Joi.string().required(),
-  categories: Joi.array().items(categorySchema).required(),
+  tickets: Joi.array().items(ticketsSchema).required(),
   promotionalContent: promotionalContentSchema,
 });
 
