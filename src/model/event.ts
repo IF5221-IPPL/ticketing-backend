@@ -43,4 +43,6 @@ const eventSchema = new Schema<IEvent>({
   }
 }, { timestamps: true });
 
+eventSchema.index({ 'tickets.categoryName': 1 });
+
 export const Event: Model<IEvent> = mongoose.model<IEvent>('Event', eventSchema);
