@@ -23,7 +23,7 @@ services:
     image: mongo-express
     restart: unless-stopped
     ports:
-      - 8081:8081
+      - 8081:3000
     env_file: ./.env
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: $DB_USERNAME
