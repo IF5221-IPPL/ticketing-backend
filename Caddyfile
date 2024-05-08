@@ -7,5 +7,5 @@ minio.ippl.michaelpege.site {
 }
 
 db.ippl.michaelpege.site {
-  reverse_proxy mongo-express:8081
+  reverse_proxy mongo-express:3000
 }
