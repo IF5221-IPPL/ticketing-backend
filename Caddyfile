@@ -1,0 +1,11 @@
+api.ippl.michaelpege.site {
+  reverse_proxy api-server:3000
+}
+
+minio.ippl.michaelpege.site {
+  reverse_proxy minio:9000
+}
+
+db.ippl.michaelpege.site {
+  reverse_proxy mongo-express:8081
+}
