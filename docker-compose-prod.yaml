@@ -73,7 +73,7 @@ services:
     volumes:
       - ./logs:/logs
       - ./public:/usr/src/app/dist/src/public
-    command: /bin/bash -c 'while !</dev/tcp/db/27017; do sleep 1; done; yarn start'
+    command: /bin/bash -c 'while !</dev/tcp/mongodb/27017; do sleep 1; done; yarn start'
 
   caddy:
     image: caddy:2.6.2-alpine
