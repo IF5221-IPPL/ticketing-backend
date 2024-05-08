@@ -58,7 +58,7 @@ services:
     build:
       context: .
     container_name: api-server
-    command: bash -c 'while !</dev/tcp/db/3306; do sleep 1; done; yarn start'
+    command: bash -c 'while !</dev/tcp/db/27017; do sleep 1; done; yarn start'
     restart: always
     env_file: ./.env
     environment:
