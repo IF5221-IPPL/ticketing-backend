@@ -81,6 +81,9 @@ services:
     restart: unless-stopped
     depends_on:
       - api-server
+      - minio
+      - mongodb
+      - mongo-express
     networks:
       - web
       - app-network
