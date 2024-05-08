@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-interface ICategory {
+interface ITicket {
   categoryName: string;
   totalTickets: number;
   pricePerTicket: number;
@@ -20,7 +20,7 @@ interface IEvent extends Document {
   startDate: Date;
   endDate: Date;
   location: string;
-  categories: ICategory[];
+  tickets: ITicket[];
   promotionalContent: IPromotionalContent;
 }
 
@@ -31,7 +31,7 @@ const eventSchema = new Schema<IEvent>({
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   location: { type: String, required: true },
-  categories: [{
+  tickets: [{
     categoryName: { type: String, required: true },
     totalTickets: { type: Number, required: true },
     pricePerTicket: { type: Number, required: true }
@@ -42,5 +42,7 @@ const eventSchema = new Schema<IEvent>({
     description: { type: String, required: true }
   }
 }, { timestamps: true });
+
+eventSchema.index({ 'tickets.categoryName': 1 });
 
 export const Event: Model<IEvent> = mongoose.model<IEvent>('Event', eventSchema);
