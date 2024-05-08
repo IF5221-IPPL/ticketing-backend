@@ -11,7 +11,12 @@ interface IReqFile extends Request {
 
 export const uploadSingleFile = async (req: IReqFile, res: Response) => {
 	try {
+		console.log("MASUK SINI");
+		console.log(req.file);
 		const file = await FileUsecase.CreateFile(req.file);
+
+		console.log("INI FILE");
+		console.log(file);
 
 		sendResponse(res, StatusCodes.CREATED, "File successfully uploaded", {
 			file,
