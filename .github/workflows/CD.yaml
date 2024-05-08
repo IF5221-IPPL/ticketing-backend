@@ -20,7 +20,7 @@ jobs:
             echo "changing directory"
             cd ~/apps/ticketing-backend
             echo "pulling latest changes"
-            git pull origin master
+            git pull origin main
             echo "updating env"
             echo "${{ secrets.ENV_FILE }}" > .env
             echo "rebuild apps"
