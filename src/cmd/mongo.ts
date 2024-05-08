@@ -9,6 +9,5 @@ const db_name = process.env.DB_NAME;
 
 export default () => {
 	const conn = `mongodb://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}?authSource=admin`;
-	console.log("INI CONN", conn);
 	return mongoose.connect(conn);
 };
