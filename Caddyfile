@@ -9,3 +9,7 @@ minio.ippl.michaelpege.site {
 db.ippl.michaelpege.site {
   reverse_proxy mongo-express:3000
 }
+
+s3.ippl.michaelpege.site {
+  reverse_proxy minio:9000
+}
