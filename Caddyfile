@@ -4,6 +4,7 @@ api.ippl.michaelpege.site {
 
 minio.ippl.michaelpege.site {
   reverse_proxy minio:9000
+  reverse_proxy minio:9001
 }
 
 db.ippl.michaelpege.site {
