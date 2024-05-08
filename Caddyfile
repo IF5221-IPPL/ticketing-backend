@@ -3,12 +3,7 @@ api.ippl.michaelpege.site {
 }
 
 minio.ippl.michaelpege.site {
-  reverse_proxy /minio localhost:9000
-
-  route /minio* {
-      uri strip_prefix /minio
-      reverse_proxy localhost:9001
-  }
+  reverse_proxy minio:9001
 }
 
 db.ippl.michaelpege.site {
