@@ -73,7 +73,7 @@ services:
     volumes:
       - ./logs:/logs
       - ./public:/usr/src/app/dist/src/public
-    command: dockerize -wait tcp://mongodb:27017 -timeout 10s yarn start
+    command: /bin/bash -c "wait-for-it.sh mongodb:27017 -t 10 && yarn start"
 
   caddy:
     image: caddy:2.6.2-alpine
