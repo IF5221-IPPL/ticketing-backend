@@ -56,12 +56,6 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
       { message: completion.choices[0].message.content }
     );
   } catch (error) {
-    sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
     Logger.error({
       message: "Failed to generate description",
       request: req,
@@ -71,6 +65,12 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
         stack: error.stack,
       },
     });
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
   }
 };
 

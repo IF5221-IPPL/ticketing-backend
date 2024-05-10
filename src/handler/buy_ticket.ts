@@ -4,120 +4,114 @@ import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
 import { Logger } from "pkg/logger/";
-import { ITicketPurchaseResponse } from "entity/transaction_detail/";
+import { IBuyTicketRequest, IBuyTicketResponse } from '../entity/buy_ticket';
+import TicketPurchase from "model/ticket_purchase/";
 
-export const buyTicket = async (req: Request, res: Response) => {
-  const { eventId } = req.params;
-  const { categoryName, numberOfTickets } = req.body;
+const ticketPurchaseDetailSchema = Joi.object({
+  categoryName: Joi.string()
+    .required()
+    .description("The name of the ticket category"),
+  totalTickets: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .description("The total number of tickets purchased in this category"),
+  totalPrice: Joi.number()
+    .precision(2)
+    .positive()
+    .required()
+    .description("The total price for the tickets purchased in this category")
+});
 
-  // Validate input using Joi
-  const { error } = ticketPurchaseSchema.validate({
-    eventId,
-    categoryName,
-    numberOfTickets,
-  });
-
-  if (error) {
-    return sendResponse(
-      res,
-      StatusCodes.BAD_REQUEST,
-      error.details[0].message,
-      null
-    );
-  }
-
-  try {
-    // Check availability and update tickets atomically
-    const event = await Event.findOne({
-      _id: eventId,
-      "tickets.categoryName": categoryName,
-    });
-
-    if (!event) {
-      return sendResponse(res, StatusCodes.NOT_FOUND, "Event not found", null);
-    }
-
-    const category = event.tickets.find(
-      (cat) => cat.categoryName === categoryName
-    );
-    if (category.totalTickets < numberOfTickets) {
-      return sendResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Insufficient tickets available",
-        null
-      );
-    }
-
-    await Event.updateOne(
-      { _id: eventId, "tickets.categoryName": categoryName },
-      { $inc: { "tickets.$.totalTickets": -numberOfTickets } }
-    );
-
-    const amount = numberOfTickets * category.pricePerTicket;
-
-    // TODO: Implement payment logic here
-    // Simulate successful payment or integrate with a payment service
-
-    const responsePayment: ITicketPurchaseResponse = {
-      transaction: {
-        id: eventId,
-        category: categoryName,
-        amount: amount,
-        numberOfTickets: numberOfTickets,
-      },
-      event: {
-        title: event.eventTitle,
-        startDate: event.startDate,
-        endDate: event.endDate,
-      },
-    };
-    return sendResponse(
-      res,
-      StatusCodes.OK,
-      "Ticket purchased successfully",
-      responsePayment
-    );
-  } catch (error) {
-    Logger.error({
-      message: error,
-      request: {
-        url: req.url,
-        method: req.method,
-        headers: req.headers,
-        body: req.body,
-      },
-      response: {
-        statusCode: res.statusCode,
-        headers: res.getHeaders(),
-      },
-      error: {
-        message: error.message,
-        stack: error.stack,
-      },
-    });
-    return sendResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Internal Server Error",
-      null
-    );
-  }
-};
-
-// Define the Joi schema for validating ticket purchase requests
 const ticketPurchaseSchema = Joi.object({
   eventId: Joi.string()
     .hex()
     .length(24)
     .required()
     .description("The unique identifier of the event"),
-  categoryName: Joi.string()
-    .required()
-    .description("The name of the ticket category"),
-  numberOfTickets: Joi.number()
-    .integer()
+  detail: Joi.array()
+    .items(ticketPurchaseDetailSchema)
     .min(1)
     .required()
-    .description("The number of tickets to purchase"),
+    .description("Details of each ticket purchase by category")
 });
+
+export const buyTicket = async (req: Request, res: Response) => {
+  let buyTicketReq: IBuyTicketRequest | null = null;
+	let buyTicketRes: IBuyTicketResponse | null = null;
+
+  try {
+    const eventId = req.params.eventId;
+
+    const { error } = ticketPurchaseSchema.validate({
+      eventId: eventId,
+      detail: req.body.detail,
+    });
+    if (error) {
+      return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, "");
+    }
+
+    let userId = req.user._id;
+    buyTicketReq = req.body;
+
+    const event = await Event.findOne({
+      _id: eventId,
+    });
+
+    if (!event) {
+      return sendResponse(res, StatusCodes.NOT_FOUND, "Event not found", null);
+    }
+
+    const newPurchase = await TicketPurchase.create({
+      eventId: eventId,
+      userId: userId,
+      category: buyTicketReq.detail
+    });
+
+    for (let detail of buyTicketReq.detail) {
+      let eventTicket = await event.tickets.find(
+        (cat) => cat.categoryName === detail.categoryName
+      );
+
+      if (detail.totalTickets > eventTicket.totalTickets) {
+        return sendResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          "Insufficient tickets available",
+          null
+        );
+      }
+
+      await Event.updateOne(
+        { _id: eventId, "tickets.categoryName": detail.categoryName },
+        { $inc: { "tickets.$.totalTickets": -detail.totalTickets } }
+      );
+    }
+
+    buyTicketRes = {
+      _id: newPurchase._id,
+      userId: newPurchase.userId,
+      eventId: newPurchase.eventId,
+      category: newPurchase.category,
+      status: newPurchase.status,
+      createdAt: newPurchase.createdAt.toISOString(),
+      updatedAt: newPurchase.updatedAt?.toISOString(),
+    }
+
+    sendResponse(res, StatusCodes.OK, "Buy ticket success", buyTicketRes);
+  } catch (err) {
+    Logger.error(
+      {
+        message: "Failed to buy ticket",
+        request: buyTicketReq,
+        response: buyTicketRes,
+        error: { 
+          message: err.message, 
+          stack: err.stack 
+        },
+      }
+    )
+      sendResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, "Something went wrong", "");
+  }
+};
+
