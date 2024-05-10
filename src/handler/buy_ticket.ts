@@ -64,6 +64,11 @@ export const buyTicket = async (req: Request, res: Response) => {
 
     const newPurchase = await TicketPurchase.create({
       eventId: eventId,
+      eventStartDate: event.startDate,
+      eventEndDate: event.endDate,
+      eventLocation: event.location,
+      eventTitle: event.eventTitle,
+      eventSubTitle: event.subTitle,
       userId: userId,
       category: buyTicketReq.detail
     });
@@ -92,6 +97,11 @@ export const buyTicket = async (req: Request, res: Response) => {
       _id: newPurchase._id,
       userId: newPurchase.userId,
       eventId: newPurchase.eventId,
+      eventStartDate: newPurchase.eventStartDate.toISOString(),
+      eventEndDate: newPurchase.eventEndDate.toISOString(),
+      eventLocation: newPurchase.eventLocation,
+      eventTitle: newPurchase.eventTitle,
+      eventSubTitle: newPurchase.eventSubTitle,
       category: newPurchase.category,
       status: newPurchase.status,
       createdAt: newPurchase.createdAt.toISOString(),

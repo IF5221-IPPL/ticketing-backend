@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-
 interface ITicketPurchaseDetail {
     categoryName: string;
     totalTickets: number;
@@ -10,6 +9,11 @@ interface ITicketPurchase extends Document {
     _id: string;
     userId: string;
     eventId: string;
+    eventStartDate: Date
+    eventEndDate: Date
+    eventLocation: string
+    eventTitle: string
+    eventSubTitle: string
     category: ITicketPurchaseDetail[];
     status: string;
     createdAt: Date;
@@ -18,6 +22,11 @@ interface ITicketPurchase extends Document {
 
 const ticketPurchaseSchema: Schema = new Schema({
     eventId: { type: String, required: true },
+    eventStartDate: { type: Date, required: true },
+    eventEndDate: { type: Date, required: true },
+    eventLocation: { type: String, required: true },
+    eventTitle: { type: String, required: true },
+    eventSubTitle: { type: String },
     userId: { type: String, required: true },
     category: [{
         categoryName: { type: String, required: true },
