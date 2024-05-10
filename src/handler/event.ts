@@ -30,13 +30,13 @@ export const createEvent = async (req: Request, res: Response) => {
       );
     }
   } catch (error) {
+    logError(req, res, "Error creating an event", error);
     sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error creating an event", error);
   }
 };
 
@@ -57,13 +57,13 @@ export const updateEventById = async (req: Request, res: Response) => {
       updatedEvent
     );
   } catch (error) {
+    logError(req, res, "Error updating event by title", error);
     sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error updating event by title", error);
   }
 };
 
@@ -101,13 +101,13 @@ export const deleteEvent = async (req: Request, res: Response) => {
       null
     );
   } catch (error) {
+    logError(req, res, "Error deleting event by id", error);
     sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error deleting event by id", error);
   }
 };
 
@@ -131,13 +131,13 @@ export const viewEventDetails = async (req: Request, res: Response) => {
       event
     );
   } catch (error) {
+    logError(req, res, "Error fetching event details", error);
     sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error fetching event details", error);
   }
 };
 
@@ -197,13 +197,13 @@ export const viewEvents = async (req: Request, res: Response) => {
       totalPages: totalPages,
     });
   } catch (error) {
+    logError(req, res, "Error fetching events", error);
     sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
       null
     );
-    logError(req, res, "Error fetching events", error);
   }
 };
 
