@@ -5,6 +5,8 @@ import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
 import User from "model/user/";
 import CONSTANT from "entity/const/";
+import { isValidObjectId } from "mongoose";
+import { IAccount } from "entity/account/";
 
 export const viewAccounts = async (req: Request, res: Response) => {
   const {
@@ -32,12 +34,21 @@ export const viewAccounts = async (req: Request, res: Response) => {
     const skip = (page - 1) * limit;
 
     const rolesToFind = [CONSTANT.ROLE.EO, CONSTANT.ROLE.CUSTOMER];
-    const users = await User.find({ role: { $in: rolesToFind } })
+    const users: any = await User.find({ role: { $in: rolesToFind } })
       .skip(skip)
       .limit(limit);
 
+    // Map each user to an IAccount object
+    const results: IAccount[] = users.map((user) => ({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
     sendResponse(res, StatusCodes.OK, "Accounts retrieved successfully", {
-      accounts: users,
+      accounts: results,
       totalAccounts: totalUsers,
       currentPage: parseInt(page, 10),
       totalPages: totalPages,
@@ -90,13 +101,22 @@ export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
     }
 
     const users = await User.find(query).skip(skip).limit(limit);
+    // Map each user to an IAccount object
+    const results: IAccount[] = users.map((user) => ({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
 
     sendResponse(
       res,
       StatusCodes.OK,
       "Filtered accounts retrieved successfully",
       {
-        accounts: users,
+        accounts: results,
         totalAccounts: totalUsers,
         currentPage: parseInt(page, 10),
         totalPages: totalPages,
@@ -114,16 +134,13 @@ export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
 };
 
 export const deleteAccount = async (req: Request, res: Response) => {
-  const {
-    value: { accountId },
-    error,
-  } = accountIdSchema.validate(req.params.accountId);
+  const accountId = req.params.accountId;
 
-  if (error) {
+  if (!isValidObjectId(accountId)) {
     return sendResponse(
       res,
       StatusCodes.BAD_REQUEST,
-      error.details[0].message,
+      "Invalid account ID",
       null
     );
   }
@@ -156,43 +173,45 @@ export const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
-export const updateActiveStatusAccount = async (
-  req: Request,
-  res: Response
-) => {
-  const { value: accountId, error: accountIdError } = accountIdSchema.validate(
-    req.params.accountId
-  );
-  if (accountIdError) {
+export const updateAccount = async (req: Request, res: Response) => {
+  const accountId = req.params.accountId;
+  if (!isValidObjectId(accountId)) {
     return sendResponse(
       res,
       StatusCodes.BAD_REQUEST,
-      accountIdError.details[0].message,
+      "Invalid account ID",
       null
     );
   }
 
-  const { value: statusActive, error: statusActiveError } =
-    statusActiveSchema.validate(req.params.statusActive);
-  if (statusActiveError) {
+  const { value, error } = userSchema.validate(req.body);
+  if (error) {
     return sendResponse(
       res,
       StatusCodes.BAD_REQUEST,
-      statusActiveError.details[0].message,
+      error.details[0].message,
       null
     );
   }
   try {
-    const updatedEvent = await User.findByIdAndUpdate(accountId, statusActive, {
+    const updatedAccount = await User.findByIdAndUpdate(accountId, value, {
       new: true,
       runValidators: true,
     });
+    const result: IAccount = {
+        name: updatedAccount.name,
+        email: updatedAccount.email,
+        role: updatedAccount.role,
+        isActive: updatedAccount.isActive,
+        createdAt: updatedAccount.createdAt,
+        updatedAt: updatedAccount.updatedAt,
+      };
 
     return sendResponse(
       res,
       StatusCodes.OK,
-      `Account with Id ${accountId} successfully updated!`,
-      updatedEvent
+      `Account with Id ${accountFilterSchema} successfully updated!`,
+      result
     );
   } catch (error) {
     logError(req, res, "Error updating account", error);
@@ -254,13 +273,8 @@ const handlePaginationError = (
 };
 
 // input validation using Joi
-
-const accountIdSchema = Joi.object({
-  eventId: Joi.string().required(),
-});
-
 const statusActiveSchema = Joi.object({
-  statusId: Joi.string().required(),
+  isActive: Joi.bool().required(),
 });
 
 const paginationSchema = Joi.object({
@@ -273,4 +287,13 @@ const accountFilterSchema = Joi.object({
   keyword: Joi.string().trim().optional(),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
+});
+
+const userSchema = Joi.object({
+  name: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  role: Joi.string().optional(),
+  isActive: Joi.boolean().optional(),
+  createdAt: Joi.date().iso().optional(),
+  updatedAt: Joi.date().iso().optional(),
 });

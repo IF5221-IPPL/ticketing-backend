@@ -3,7 +3,7 @@ import { auth } from "../middleware/auth";
 import CONSTANT from "entity/const/";
 import {
   deleteAccount,
-  updateActiveStatusAccount,
+  updateAccount,
   viewAccounts,
   viewAccountsWithFiltered,
 } from "handler/account_management/";
@@ -18,10 +18,7 @@ router.get(
   checkRole(CONSTANT.ROLE.ADMIN),
   viewAccountsWithFiltered
 );
-router.get("/accounts", auth,
- checkRole(CONSTANT.ROLE.ADMIN), 
- viewAccounts);
- 
+
 router.delete(
   "/accounts/:accountId",
   auth,
@@ -32,7 +29,9 @@ router.put(
   "/accounts/:accountId",
   auth,
   checkRole(CONSTANT.ROLE.ADMIN),
-  updateActiveStatusAccount
+  updateAccount
 );
+
+router.get("/accounts", auth, checkRole(CONSTANT.ROLE.ADMIN), viewAccounts);
 
 export default router;
