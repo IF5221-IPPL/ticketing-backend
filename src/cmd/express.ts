@@ -15,6 +15,8 @@ import morganMiddleware from "../middleware/morgan";
 import eventRoutes from 'routes/event'; 
 import generate_description_routes from 'routes/generate_description';
 import ticketRoute from 'routes/ticket/';
+import packageRoute from 'routes/package/';
+import purchaseRoute from 'routes/purchase/';
 import { minioProxy } from "middleware/upload/";
 
 require("dotenv").config();
@@ -39,6 +41,8 @@ export default (app: Application) => {
 	app.use(process.env.PREFIX_API, routes.FileRoutes());
     app.use(process.env.PREFIX_API, generate_description_routes);
     app.use(process.env.PREFIX_API, ticketRoute );
+    app.use(process.env.PREFIX_API, packageRoute);
+    app.use(process.env.PREFIX_API, purchaseRoute);
 
     app.use((_: Request, res: Response) => {
         return sendResponse(res, StatusCodes.NOT_FOUND, "Not Found", {});
