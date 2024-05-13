@@ -40,6 +40,7 @@ export const viewAccounts = async (req: Request, res: Response) => {
 
     // Map each user to an IAccount object
     const results: IAccount[] = users.map((user) => ({
+      _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -103,6 +104,7 @@ export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
     const users = await User.find(query).skip(skip).limit(limit);
     // Map each user to an IAccount object
     const results: IAccount[] = users.map((user) => ({
+        _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
