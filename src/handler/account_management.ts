@@ -24,34 +24,56 @@ export const viewAccounts = async (req: Request, res: Response) => {
 
   try {
     const totalUsers = await User.countDocuments();
-    const totalEventOrganizers = await EventOrganizer.countDocuments();
-    const totalAccounts = totalUsers + totalEventOrganizers;
 
-    const totalPages = Math.ceil(totalAccounts / limit);
+    const totalPages = Math.ceil(totalUsers / limit);
     //Prevent sending multiple responses
     if (handlePaginationError(res, page, totalPages)) {
       return;
     }
     const skip = (page - 1) * limit;
 
-    const customers = await User.find().skip(skip).limit(limit).lean();
-    const remainingLimit = Math.max(limit - customers.length, 0);
-    const eventOrganizers = await EventOrganizer.find()
-      .skip(skip - totalUsers > 0 ? skip - totalUsers : 0)
-      .limit(remainingLimit)
-      .lean();
-
-    const accounts = [...customers, ...eventOrganizers];
+    const users = await User.find().skip(skip).limit(limit).lean();
 
     sendResponse(res, StatusCodes.OK, "Accounts retrieved successfully", {
-      accounts: accounts,
-      totalAccounts: totalAccounts,
+      accounts: users,
+      totalAccounts: totalUsers,
       currentPage: parseInt(page, 10),
       totalPages: totalPages,
     });
   } catch (error) {
     logError(req, res, "Error fetching accounts", error);
     sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+  }
+};
+
+export const deleteAccont = async (req: Request, res: Response) => {
+  const accountId = req.params.accountId;
+
+  try {
+     const deletedEvent = await User.findByIdAndDelete(accountId);
+
+    if (!deletedEvent) {
+      return sendResponse(
+        res,
+        StatusCodes.NOT_FOUND,
+        `Account with id ${accountId} not found`,
+        null
+      );
+    }
+    return sendResponse(
+      res,
+      StatusCodes.NO_CONTENT,
+      `Account with title ${accountId} deleted successfully`,
+      null
+    );
+  } catch (error) {
+    logError(req, res, "Error deleting event by id", error);
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
