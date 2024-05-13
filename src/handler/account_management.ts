@@ -51,7 +51,7 @@ export const viewAccounts = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteAccont = async (req: Request, res: Response) => {
+export const deleteAccount = async (req: Request, res: Response) => {
   const accountId = req.params.accountId;
 
   try {
