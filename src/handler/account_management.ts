@@ -55,7 +55,7 @@ export const deleteAccount = async (req: Request, res: Response) => {
   const accountId = req.params.accountId;
 
   try {
-     const deletedEvent = await User.findByIdAndDelete(accountId);
+    const deletedEvent = await User.findByIdAndDelete(accountId);
 
     if (!deletedEvent) {
       return sendResponse(
@@ -74,6 +74,33 @@ export const deleteAccount = async (req: Request, res: Response) => {
   } catch (error) {
     logError(req, res, "Error deleting event by id", error);
     return sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+  }
+};
+
+export const updateActiveStatusAccount = async (req: Request, res: Response) => {
+  try {
+    const accountId = req.params.accountId;
+    const statusActive = req.body;
+
+    const updatedEvent = await User.findByIdAndUpdate(accountId, statusActive, {
+      new: true,
+      runValidators: true,
+    });
+
+    return sendResponse(
+      res,
+      StatusCodes.OK,
+      `Account with Id ${accountId} successfully updated!`,
+      updatedEvent
+    );
+  } catch (error) {
+    logError(req, res, "Error updating account", error);
+    sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",

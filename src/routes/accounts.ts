@@ -3,7 +3,7 @@ import express from "express";
 import { auth } from "../middleware/auth";
 
 import CONSTANT from "entity/const/";
-import { deleteAccount, viewAccounts } from "handler/account_management/";
+import { deleteAccount, updateActiveStatusAccount, viewAccounts } from "handler/account_management/";
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ const router = express.Router();
 // router.get("/events/:eventId", auth, validateEventId, viewEventDetails);
 
 router.get("/accounts", viewAccounts);
-router.delete("/accounts/:accountId", deleteAccount)
+router.delete("/accounts/:accountId", deleteAccount);
+router.put("/accounts/:accountId", updateActiveStatusAccount);
 
 export default router;
