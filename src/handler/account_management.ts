@@ -201,6 +201,7 @@ export const updateAccount = async (req: Request, res: Response) => {
       runValidators: true,
     });
     const result: IAccount = {
+        _id: updatedAccount._id, 
         name: updatedAccount.name,
         email: updatedAccount.email,
         role: updatedAccount.role,
