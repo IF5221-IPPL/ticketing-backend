@@ -63,6 +63,7 @@ export const register = async (req: Request, res: Response) => {
         const newOrganizer = await EventOrganizer.create({
             userId: newUser._id,
             establishYear: registerReq.establishYear,
+            gptAccessTokenQuota: CONSTANT.DEFAULT_GPT_ACCESS_TOKEN_QUOTA,
             description: registerReq.description,
             address: registerReq.address,
             industry: registerReq.industry,
@@ -81,6 +82,7 @@ export const register = async (req: Request, res: Response) => {
             industry: newOrganizer.industry,
             address: newOrganizer.address,
             description: newOrganizer.description,
+            gptAccessTokenQuota: CONSTANT.DEFAULT_GPT_ACCESS_TOKEN_QUOTA,
             createdAt: newUser.createdAt.toISOString(),
             updatedAt: newUser.updatedAt?.toISOString(),
         };

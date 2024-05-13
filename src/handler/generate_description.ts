@@ -6,10 +6,7 @@ import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import { Logger } from "pkg/logger/";
 import CONSTANT from "entity/const/";
-
-
-// In-memory store for API call limits
-const userCallCounts: { [userId: string]: { count: number; resetTime: Date } } = {};
+import EventOrganizer from "model/event_organizer/";
 
 export const generateDescByGPT = async (req: Request, res: Response) => {
   const openai = new OpenAI({ apiKey: `${process.env.GPT_API_KEY}` });
@@ -26,34 +23,51 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
     );
   }
 
- 
-  if (!canMakeApiCall(userId)) {
-    return sendResponse(
-      res,
-      StatusCodes.TOO_MANY_REQUESTS,
-      "API call limit reached for today",
-      null
-    );
-  }
-
   const messagesPayload: any = {
     role: CONSTANT.GPT_ROLE,
-    content: value.text
+    content: value.text,
   };
 
   try {
+    const user = await EventOrganizer.findOne({ userId });
+    if (!user) {
+      return sendResponse(res, StatusCodes.NOT_FOUND, "User not found", null);
+    }
+
+    if (user.gptAccessTokenQuota === 0) {
+      return sendResponse(
+        res,
+        StatusCodes.TOO_MANY_REQUESTS,
+        "GPT access token quota exhausted",
+        null
+      );
+    }
+
     const completion = await openai.chat.completions.create({
       messages: [messagesPayload],
       model: CONSTANT.MODEL_GPT,
     });
 
-    incrementApiCallCount(userId);
+    if (!completion) {
+      return sendResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Invalid response from OpenAI API",
+        null
+      );
+    }
+
+    user.gptAccessTokenQuota -= 1;
+    await user.save();
 
     return sendResponse(
       res,
       StatusCodes.OK,
       "Successfully received generated description",
-      { message: completion.choices[0].message.content }
+      {
+        generatedDescription: completion.choices[0].message.content,
+        gptQuota: user.gptAccessTokenQuota,
+      }
     );
   } catch (error) {
     Logger.error({
@@ -65,32 +79,16 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
         stack: error.stack,
       },
     });
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
-      null
+      error.message
     );
   }
 };
 
-function canMakeApiCall(userId: string): boolean {
-  const user = userCallCounts[userId];
-  const now = new Date();
-  if (!user || user.resetTime < now) {
-    // Reset or initialize the counter every day (don't care about the hour, only day)
-    userCallCounts[userId] = { count: 0, resetTime: new Date(now.setDate(now.getDate() + 1)) };
-    return true;
-  }
-  return user.count < CONSTANT.API_CALL_LIMIT;
-}
-
-function incrementApiCallCount(userId: string): void {
-  userCallCounts[userId].count += 1;
-}
-
 // Validation schema
 const gptRequestSchema = Joi.object({
-  userId: Joi.string().required(),
   text: Joi.string().required(),
 });
