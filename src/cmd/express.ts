@@ -23,7 +23,7 @@ export default (app: Application) => {
     const corsOption = {
         credentials: true,
         origin: isProduction() ? CONSTANT.CORS_ORIGIN.PRODUCTION : CONSTANT.CORS_ORIGIN.DEVELOPMENT,
-        method: ["GET", "PUT", "POST", "DELETE"],
+        method: ["GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"],
     };
 
 	app.use("/public", minioProxy);
