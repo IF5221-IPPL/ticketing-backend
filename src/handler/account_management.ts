@@ -3,9 +3,8 @@ import { Logger } from "pkg/logger/";
 import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
-import CONSTANT from "entity/const/";
-import EventOrganizer from "model/event_organizer/";
 import User from "model/user/";
+import CONSTANT from "entity/const/";
 
 export const viewAccounts = async (req: Request, res: Response) => {
   const {
@@ -32,7 +31,10 @@ export const viewAccounts = async (req: Request, res: Response) => {
     }
     const skip = (page - 1) * limit;
 
-    const users = await User.find().skip(skip).limit(limit).lean();
+    const rolesToFind = [CONSTANT.ROLE.EO, CONSTANT.ROLE.CUSTOMER];
+    const users = await User.find({ role: { $in: rolesToFind } })
+      .skip(skip)
+      .limit(limit);
 
     sendResponse(res, StatusCodes.OK, "Accounts retrieved successfully", {
       accounts: users,
@@ -50,6 +52,8 @@ export const viewAccounts = async (req: Request, res: Response) => {
     );
   }
 };
+
+export const viewAccountsFiltered = async (req: Request, res: Response) => {};
 
 export const deleteAccount = async (req: Request, res: Response) => {
   const accountId = req.params.accountId;
@@ -82,7 +86,10 @@ export const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
-export const updateActiveStatusAccount = async (req: Request, res: Response) => {
+export const updateActiveStatusAccount = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const accountId = req.params.accountId;
     const statusActive = req.body;
