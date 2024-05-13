@@ -53,10 +53,80 @@ export const viewAccounts = async (req: Request, res: Response) => {
   }
 };
 
-export const viewAccountsFiltered = async (req: Request, res: Response) => {};
+export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
+  const {
+    value: { page, limit, status, keyword },
+    error,
+  } = accountFilterSchema.validate(req.query);
+  let query: any = {};
+
+  if (error) {
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
+  }
+
+  try {
+    const totalUsers = await User.countDocuments();
+
+    const totalPages = Math.ceil(totalUsers / limit);
+    // Prevent sending multiple responses
+    if (handlePaginationError(res, page, totalPages)) {
+      return;
+    }
+
+    const skip = (page - 1) * limit;
+
+    if (status) {
+      query = { role: { $in: status.split(",") } };
+    }
+
+    if (keyword) {
+      const keywordRegex = new RegExp(keyword, "i");
+      query.$or = [{ name: keywordRegex }, { email: keywordRegex }];
+    }
+
+    const users = await User.find(query).skip(skip).limit(limit);
+
+    sendResponse(
+      res,
+      StatusCodes.OK,
+      "Filtered accounts retrieved successfully",
+      {
+        accounts: users,
+        totalAccounts: totalUsers,
+        currentPage: parseInt(page, 10),
+        totalPages: totalPages,
+      }
+    );
+  } catch (error) {
+    logError(req, res, "Error fetching filtered accounts", error);
+    sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      null
+    );
+  }
+};
 
 export const deleteAccount = async (req: Request, res: Response) => {
-  const accountId = req.params.accountId;
+  const {
+    value: { accountId },
+    error,
+  } = accountIdSchema.validate(req.params.accountId);
+
+  if (error) {
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
+  }
 
   try {
     const deletedEvent = await User.findByIdAndDelete(accountId);
@@ -90,10 +160,29 @@ export const updateActiveStatusAccount = async (
   req: Request,
   res: Response
 ) => {
-  try {
-    const accountId = req.params.accountId;
-    const statusActive = req.body;
+  const { value: accountId, error: accountIdError } = accountIdSchema.validate(
+    req.params.accountId
+  );
+  if (accountIdError) {
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      accountIdError.details[0].message,
+      null
+    );
+  }
 
+  const { value: statusActive, error: statusActiveError } =
+    statusActiveSchema.validate(req.params.statusActive);
+  if (statusActiveError) {
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      statusActiveError.details[0].message,
+      null
+    );
+  }
+  try {
     const updatedEvent = await User.findByIdAndUpdate(accountId, statusActive, {
       new: true,
       runValidators: true,
@@ -165,7 +254,23 @@ const handlePaginationError = (
 };
 
 // input validation using Joi
+
+const accountIdSchema = Joi.object({
+  eventId: Joi.string().required(),
+});
+
+const statusActiveSchema = Joi.object({
+  statusId: Joi.string().required(),
+});
+
 const paginationSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(25),
+});
+
+const accountFilterSchema = Joi.object({
+  status: Joi.string().trim().optional(),
+  keyword: Joi.string().trim().optional(),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
 });
