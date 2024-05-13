@@ -29,7 +29,7 @@ export const generateDescByGPT = async (req: Request, res: Response) => {
   };
 
   try {
-    const user = await EventOrganizer.findOne({ userId });
+    const user = await EventOrganizer.findOne({ userId: userId });
     if (!user) {
       return sendResponse(res, StatusCodes.NOT_FOUND, "User not found", null);
     }
