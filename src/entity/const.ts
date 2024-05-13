@@ -21,7 +21,9 @@ const CONSTANT = {
   STATUS_EVENT: {
     UPCOMING: "upcoming",
     PAST : "past",
-  }
+  },
+
+  DEFAULT_GPT_ACCESS_TOKEN_QUOTA: 0,
 };
 
 export default CONSTANT;

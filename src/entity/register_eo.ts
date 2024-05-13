@@ -20,6 +20,7 @@ export interface IRegisterEventOrganizerResponse {
     contactNumber: string;
     industry: string;
     address: string;
+    gptAccessTokenQuota: number;
     description: string;
     createdAt: string;
     updatedAt: string;
