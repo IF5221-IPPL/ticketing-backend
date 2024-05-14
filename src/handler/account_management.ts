@@ -24,19 +24,22 @@ export const viewAccounts = async (req: Request, res: Response) => {
   }
 
   try {
-    const totalUsers = await User.countDocuments();
+   
+    const skip = (page - 1) * limit;
+    const rolesToFind = [CONSTANT.ROLE.EO, CONSTANT.ROLE.CUSTOMER];
+    const queryConditions = { role: { $in: rolesToFind } };
+
+    const [users, totalUsers] = await Promise.all([
+      User.find(queryConditions).skip(skip).limit(limit),
+      User.countDocuments(queryConditions),
+    ]);
 
     const totalPages = Math.ceil(totalUsers / limit);
-    //Prevent sending multiple responses
+
+       //Prevent sending multiple responses
     if (handlePaginationError(res, page, totalPages)) {
       return;
     }
-    const skip = (page - 1) * limit;
-
-    const rolesToFind = [CONSTANT.ROLE.EO, CONSTANT.ROLE.CUSTOMER];
-    const users: any = await User.find({ role: { $in: rolesToFind } })
-      .skip(skip)
-      .limit(limit);
 
     // Map each user to an IAccount object
     const results: IAccount[] = users.map((user) => ({
@@ -82,14 +85,6 @@ export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
   }
 
   try {
-    const totalUsers = await User.countDocuments();
-
-    const totalPages = Math.ceil(totalUsers / limit);
-    // Prevent sending multiple responses
-    if (handlePaginationError(res, page, totalPages)) {
-      return;
-    }
-
     const skip = (page - 1) * limit;
 
     if (status) {
@@ -101,7 +96,12 @@ export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
       query.$or = [{ name: keywordRegex }, { email: keywordRegex }];
     }
 
-    const users = await User.find(query).skip(skip).limit(limit);
+    const [users, totalUsers] = await Promise.all([
+      User.find(query).skip(skip).limit(limit),
+      User.countDocuments(query),
+    ]);
+
+    const totalPages = Math.ceil(totalUsers / limit);
     // Map each user to an IAccount object
     const results: IAccount[] = users.map((user) => ({
         _id: user._id,
