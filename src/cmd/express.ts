@@ -15,6 +15,8 @@ import morganMiddleware from "../middleware/morgan";
 import eventRoutes from 'routes/event'; 
 import generate_description_routes from 'routes/generate_description';
 import ticketRoute from 'routes/ticket/';
+import packageRoute from 'routes/package/';
+import purchaseRoute from 'routes/purchase/';
 import { minioProxy } from "middleware/upload/";
 import { viewAccounts } from "handler/account_management/";
 import accountsRoute from 'routes/accounts';
@@ -25,7 +27,7 @@ export default (app: Application) => {
     const corsOption = {
         credentials: true,
         origin: isProduction() ? CONSTANT.CORS_ORIGIN.PRODUCTION : CONSTANT.CORS_ORIGIN.DEVELOPMENT,
-        method: ["GET", "PUT", "POST", "DELETE"],
+        method: ["GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"],
     };
 
 	app.use("/public", minioProxy);
@@ -41,6 +43,8 @@ export default (app: Application) => {
 	app.use(process.env.PREFIX_API, routes.FileRoutes());
     app.use(process.env.PREFIX_API, generate_description_routes);
     app.use(process.env.PREFIX_API, ticketRoute );
+    app.use(process.env.PREFIX_API, packageRoute);
+    app.use(process.env.PREFIX_API, purchaseRoute);
     app.use(process.env.PREFIX_API, accountsRoute );
 
     app.use((_: Request, res: Response) => {
