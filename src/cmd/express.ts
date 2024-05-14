@@ -18,6 +18,8 @@ import ticketRoute from 'routes/ticket/';
 import packageRoute from 'routes/package/';
 import purchaseRoute from 'routes/purchase/';
 import { minioProxy } from "middleware/upload/";
+import { viewAccounts } from "handler/account_management/";
+import accountsRoute from 'routes/accounts';
 
 require("dotenv").config();
 
@@ -43,6 +45,7 @@ export default (app: Application) => {
     app.use(process.env.PREFIX_API, ticketRoute );
     app.use(process.env.PREFIX_API, packageRoute);
     app.use(process.env.PREFIX_API, purchaseRoute);
+    app.use(process.env.PREFIX_API, accountsRoute );
 
     app.use((_: Request, res: Response) => {
         return sendResponse(res, StatusCodes.NOT_FOUND, "Not Found", {});
