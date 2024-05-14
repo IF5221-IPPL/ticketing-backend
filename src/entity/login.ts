@@ -12,4 +12,5 @@ export interface ILoginResponse {
     role: string;
     createdAt: string;
     updatedAt: string;
+    gptAccessTokenQuota: number;
 }

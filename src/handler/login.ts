@@ -7,6 +7,7 @@ import { ILoginRequest, ILoginResponse } from '../entity/login';
 import { sendResponse } from 'pkg/http';
 import CONSTANT from 'entity/const';
 import { Logger } from 'pkg/logger';
+import EventOrganizer from 'model/event_organizer/';
 import Joi from 'joi';
 
 const validationSchema = Joi.object({
@@ -48,6 +49,14 @@ export const login = async (req: Request, res: Response) => {
 
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: process.env.JWT_EXPIRES_IN || CONSTANT.DEFAULT_JWT_EXPIRES_IN });
 
+        let gptAccessTokenQuota = 0;
+        if (user.role === CONSTANT.ROLE.EO) {
+            const eo = await EventOrganizer.findOne({ userId: user._id });
+            if (eo) {
+                gptAccessTokenQuota = eo.gptAccessTokenQuota;
+            }
+        }
+
         loginRes = {
             userId: user._id,
             name: user.name,
@@ -55,6 +64,7 @@ export const login = async (req: Request, res: Response) => {
             token,
             isActive: user.isActive,
             role: user.role,
+            gptAccessTokenQuota: gptAccessTokenQuota,
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt.toISOString(),
         };
