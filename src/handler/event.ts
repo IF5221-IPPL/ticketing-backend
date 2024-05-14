@@ -6,6 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
 import CONSTANT from "entity/const/";
 import User from "model/user/";
+import EventOrganizer from "model/event_organizer/";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -125,9 +126,9 @@ export const viewEventDetails = async (req: Request, res: Response) => {
         null
       );
     }
+    const organizer = await EventOrganizer.findOne({userId: event.ownerId});
 
     const user:any= await User.findOne({ _id: event.ownerId });
-    console.log("nama user ", user)
     return sendResponse(
       res,
       StatusCodes.OK,
@@ -135,6 +136,7 @@ export const viewEventDetails = async (req: Request, res: Response) => {
       {
         event,
         ownerName: user ? user.name : null,
+        organizer: organizer ? organizer : null,
       }
     );
   } catch (error) {
@@ -209,7 +211,7 @@ export const viewEvents = async (req: Request, res: Response) => {
     // Add user details to events
     const eventsWithOwnerName = events.map(event => ({
       ...event.toObject(),
-      ownerName: userMap.get(event.ownerId.toString()),
+      ownerName: userMap.get(event.ownerId.toString()) || null,
     }));
 
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
@@ -283,8 +285,10 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
     // Add user details to events
     const eventsWithOwnerName = events.map(event => ({
       ...event.toObject(),
-      ownerName: userMap.get(event.ownerId.toString()),
+      ownerName: userMap.get(event.ownerId.toString()) || null,
     }));
+
+    console.log(eventsWithOwnerName);
 
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
       events: eventsWithOwnerName,
