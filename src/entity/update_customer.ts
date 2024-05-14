@@ -1,14 +1,14 @@
-export interface IRegisterRequest {
-    name: string;
-	email: string;
-    password: string;
-}
-
-export interface IRegisterResponse {
+export interface IUpdateCustomerRequest {
     userId: string;
     name: string;
 	email: string;
-    token: string;
+    profilePictureUrl: string;
+}
+
+export interface IUpdateCustomerResponse {
+    userId: string;
+    name: string;
+	email: string;
     isActive: boolean;
     role: string;
     profilePictureUrl: string;

@@ -65,6 +65,7 @@ export const login = async (req: Request, res: Response) => {
             isActive: user.isActive,
             role: user.role,
             gptAccessTokenQuota: gptAccessTokenQuota,
+            profilePictureUrl: user.profilePictureUrl,
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt.toISOString(),
         };

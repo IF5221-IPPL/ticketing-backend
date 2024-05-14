@@ -31,6 +31,10 @@ export const register = async (req: Request, res: Response) => {
             return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, "");
         }
 
+        if (req.user._id.toString() !== req.body.userId) {
+            return sendResponse(res, StatusCodes.FORBIDDEN, "You are not allowedr", "");
+        }
+
         registerReq = req.body
         registerReq.email = registerReq.email.toLowerCase();
 
@@ -83,6 +87,7 @@ export const register = async (req: Request, res: Response) => {
             address: newOrganizer.address,
             description: newOrganizer.description,
             gptAccessTokenQuota: CONSTANT.DEFAULT_GPT_ACCESS_TOKEN_QUOTA,
+            profilePictureUrl: newUser.profilePictureUrl,
             createdAt: newUser.createdAt.toISOString(),
             updatedAt: newUser.updatedAt?.toISOString(),
         };
