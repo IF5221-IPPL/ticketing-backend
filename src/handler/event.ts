@@ -5,6 +5,7 @@ import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
 import CONSTANT from "entity/const/";
+import EventOrganizer from "model/event_organizer/";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -124,11 +125,17 @@ export const viewEventDetails = async (req: Request, res: Response) => {
         null
       );
     }
+
+    const organizer = await EventOrganizer.findOne({ userId: event.ownerId });
+
     return sendResponse(
       res,
       StatusCodes.OK,
       "Event details retrieved successfully",
-      event
+      {
+        event,
+        organizer: organizer ? organizer : null,
+      }
     );
   } catch (error) {
     logError(req, res, "Error fetching event details", error);
