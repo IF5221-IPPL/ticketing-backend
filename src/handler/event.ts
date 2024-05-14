@@ -5,7 +5,7 @@ import { sendResponse } from "pkg/http/";
 import { StatusCodes } from "http-status-codes";
 import Joi from "joi";
 import CONSTANT from "entity/const/";
-import EventOrganizer from "model/event_organizer/";
+import User from "model/user/";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -126,15 +126,15 @@ export const viewEventDetails = async (req: Request, res: Response) => {
       );
     }
 
-    const organizer = await EventOrganizer.findOne({ userId: event.ownerId });
-
+    const user:any= await User.findOne({ _id: event.ownerId });
+    console.log("nama user ", user)
     return sendResponse(
       res,
       StatusCodes.OK,
       "Event details retrieved successfully",
       {
         event,
-        organizer: organizer ? organizer : null,
+        ownerName: user ? user.name : null,
       }
     );
   } catch (error) {
@@ -186,6 +186,7 @@ export const viewEvents = async (req: Request, res: Response) => {
 
     const query = Event.find(queryConditions).sort({ startDate: 1 });
 
+   
     const [events, totalEvents] = await Promise.all([
       query.skip(skip).limit(limit),
       Event.countDocuments(queryConditions),
@@ -197,8 +198,22 @@ export const viewEvents = async (req: Request, res: Response) => {
     if (handlePaginationError(res, page, totalPages)) {
       return;
     }
+
+     // Extract ownerId and find user details
+    const ownerIds = events.map(event => event.ownerId);
+    const users = await User.find({ _id: { $in: ownerIds } }).select('_id name');
+
+    // Create a map for easy lookup
+    const userMap = new Map(users.map(user => [user._id.toString(), user.name]));
+
+    // Add user details to events
+    const eventsWithOwnerName = events.map(event => ({
+      ...event.toObject(),
+      ownerName: userMap.get(event.ownerId.toString()),
+    }));
+
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
-      events,
+      events: eventsWithOwnerName,
       totalEvents,
       currentPage: page,
       totalPages: totalPages,
@@ -258,9 +273,21 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
     if (handlePaginationError(res, value.page, totalPages)) {
       return;
     }
+    // Extract ownerId and find user details
+    const ownerIds = events.map(event => event.ownerId);
+    const users = await User.find({ _id: { $in: ownerIds } }).select('_id name');
+
+    // Create a map for easy lookup
+    const userMap = new Map(users.map(user => [user._id.toString(), user.name]));
+
+    // Add user details to events
+    const eventsWithOwnerName = events.map(event => ({
+      ...event.toObject(),
+      ownerName: userMap.get(event.ownerId.toString()),
+    }));
 
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
-      events,
+      events: eventsWithOwnerName,
       page: value.page,
       totalPages: Math.ceil(totalPages / value.limit),
     });
