@@ -74,7 +74,7 @@ export const updateEO = async (req: Request, res: Response) => {
             industry: updatedOrganizer.industry,
             address: updatedOrganizer.address,
             description: updatedOrganizer.description,
-            gptAccessTokenQuota: CONSTANT.DEFAULT_GPT_ACCESS_TOKEN_QUOTA,
+            gptAccessTokenQuota: updatedOrganizer.gptAccessTokenQuota,
             profilePictureUrl: updatedUser.profilePictureUrl,
             createdAt: updatedUser.createdAt.toISOString(),
             updatedAt: updatedUser.updatedAt?.toISOString(),
