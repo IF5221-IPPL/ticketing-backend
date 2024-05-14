@@ -62,6 +62,7 @@ export const register = async (req: Request, res: Response) => {
             token,
             isActive: newUser.isActive,
             role: newUser.role,
+            profilePictureUrl: newUser.profilePictureUrl,
             createdAt: newUser.createdAt.toISOString(),
             updatedAt: newUser.updatedAt?.toISOString(),
         };

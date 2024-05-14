@@ -1,20 +1,19 @@
-export interface IRegisterEventOrganizerRequest {
+export interface IUpdateEventOrganizerRequest {
     userId: string;
     name: string;
 	email: string;
-    password: string;
     establishYear: number;
     contactNumber: string;
     industry: string;
     address: string;
     description: string;
+    profilePictureUrl: string;
 }
 
-export interface IRegisterEventOrganizerResponse {
+export interface IUpdateEventOrganizerResponse {
     userId: string;
     name: string;
 	email: string;
-    token: string;
     isActive: boolean;
     role: string;
     establishYear: number;

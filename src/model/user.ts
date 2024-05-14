@@ -6,6 +6,7 @@ interface IUser extends Document {
   password: string;
   role: string;
   isActive: boolean;
+  profilePictureUrl: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +17,7 @@ const userSchema: Schema = new Schema({
   password: { type: String, required: true },
   role: { type: String, required: true },
   isActive: { type: Boolean, default: true },
+  profilePictureUrl: { type: String, default: ''},
   createdAt: { type: Date, required: true, default: Date.now },
   updatedAt: { type: Date },
 }, {timestamps: true});

@@ -12,5 +12,6 @@ export interface ILoginResponse {
     role: string;
     createdAt: string;
     updatedAt: string;
+    profilePictureUrl: string;
     gptAccessTokenQuota: number;
 }
