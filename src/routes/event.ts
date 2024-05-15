@@ -51,7 +51,7 @@ router.delete(
 // should put here, Don't Change this hierarchy.
 // Note: since route "/events/:eventId" can match "filtered" param,
 // we have to put "event/filtered" routes before "events/:eventId".
-router.get("/events/filtered", auth, viewAllEventsWithFilter);
+router.get("/events/filtered", viewAllEventsWithFilter);
 
 router.get("/events/:eventId", validateEventId, viewEventDetails);
 

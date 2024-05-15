@@ -151,10 +151,9 @@ export const viewEventDetails = async (req: Request, res: Response) => {
 };
 
 export const viewEvents = async (req: Request, res: Response) => {
- 
-  const userRole = req.user ? req.user.role : null;
+
   const {
-    value: { page, limit, status }, // 'status' will be undefined if not provided by a non-EO user
+    value: { page, limit },
     error,
   } = paginationSchema.validate(req.query);
 
@@ -269,8 +268,6 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
       ownerName: userMap.get(event.ownerId.toString()) || null,
     }));
 
-    console.log(eventsWithOwnerName);
-
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
       events: eventsWithOwnerName,
       page: value.page,
@@ -338,12 +335,6 @@ const handlePaginationError = (
 const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
-});
-
-const statusAndPaginationSchema = Joi.object({
-  page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(25),
-  status: Joi.string().valid("upcoming", "past").optional(),
 });
 
 const eventFilterSchema = Joi.object({
