@@ -53,7 +53,7 @@ router.delete(
 // we have to put "event/filtered" routes before "events/:eventId".
 router.get("/events/filtered", auth, viewAllEventsWithFilter);
 
-router.get("/events/:eventId", auth, validateEventId, viewEventDetails);
+router.get("/events/:eventId", validateEventId, viewEventDetails);
 
 router.get("/events", viewEvents);
 
