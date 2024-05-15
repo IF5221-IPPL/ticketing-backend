@@ -33,7 +33,7 @@ export const createEvent = async (req: Request, res: Response) => {
     }
   } catch (error) {
     logError(req, res, "Error creating an event", error);
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
@@ -60,7 +60,7 @@ export const updateEventById = async (req: Request, res: Response) => {
     );
   } catch (error) {
     logError(req, res, "Error updating event by title", error);
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
@@ -104,7 +104,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
     );
   } catch (error) {
     logError(req, res, "Error deleting event by id", error);
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
@@ -126,9 +126,9 @@ export const viewEventDetails = async (req: Request, res: Response) => {
         null
       );
     }
-    const organizer = await EventOrganizer.findOne({userId: event.ownerId});
+    const organizer = await EventOrganizer.findOne({ userId: event.ownerId });
 
-    const user:any= await User.findOne({ _id: event.ownerId });
+    const user: any = await User.findOne({ _id: event.ownerId });
     return sendResponse(
       res,
       StatusCodes.OK,
@@ -141,7 +141,7 @@ export const viewEventDetails = async (req: Request, res: Response) => {
     );
   } catch (error) {
     logError(req, res, "Error fetching event details", error);
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
@@ -151,13 +151,8 @@ export const viewEventDetails = async (req: Request, res: Response) => {
 };
 
 export const viewEvents = async (req: Request, res: Response) => {
-  const userRole = req.user.role;
-  const paginationSchema =
-    userRole === CONSTANT.ROLE.EO
-      ? statusAndPaginationSchema
-      : pagiantionSchema;
   const {
-    value: { page, limit, status }, // 'status' will be undefined if not provided by a non-EO user
+    value: { page, limit },
     error,
   } = paginationSchema.validate(req.query);
 
@@ -171,27 +166,11 @@ export const viewEvents = async (req: Request, res: Response) => {
   }
 
   try {
-    let queryConditions: any = {};
     const skip = (page - 1) * limit;
-
-    if (userRole === CONSTANT.ROLE.EO) {
-      const userId = req.user._id;
-      queryConditions = { ownerId: userId };
-
-      const currentDate = new Date().getTime();
-      if (status === CONSTANT.STATUS_EVENT.UPCOMING) {
-        queryConditions.startDate = { $gte: currentDate };
-      } else if (status === CONSTANT.STATUS_EVENT.PAST) {
-        queryConditions.startDate = { $lt: currentDate };
-      }
-    }
-
-    const query = Event.find(queryConditions).sort({ startDate: 1 });
-
-   
+    const query = Event.find().sort({ startDate: 1 });
     const [events, totalEvents] = await Promise.all([
       query.skip(skip).limit(limit),
-      Event.countDocuments(queryConditions),
+      Event.countDocuments(),
     ]);
 
     const totalPages = Math.ceil(totalEvents / limit);
@@ -201,15 +180,19 @@ export const viewEvents = async (req: Request, res: Response) => {
       return;
     }
 
-     // Extract ownerId and find user details
-    const ownerIds = events.map(event => event.ownerId);
-    const users = await User.find({ _id: { $in: ownerIds } }).select('_id name');
+    // Extract ownerId and find user details
+    const ownerIds = events.map((event) => event.ownerId);
+    const users = await User.find({ _id: { $in: ownerIds } }).select(
+      "_id name"
+    );
 
     // Create a map for easy lookup
-    const userMap = new Map(users.map(user => [user._id.toString(), user.name]));
+    const userMap = new Map(
+      users.map((user) => [user._id.toString(), user.name])
+    );
 
     // Add user details to events
-    const eventsWithOwnerName = events.map(event => ({
+    const eventsWithOwnerName = events.map((event) => ({
       ...event.toObject(),
       ownerName: userMap.get(event.ownerId.toString()) || null,
     }));
@@ -222,7 +205,7 @@ export const viewEvents = async (req: Request, res: Response) => {
     });
   } catch (error) {
     logError(req, res, "Error fetching events", error);
-    sendResponse(
+    return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal Server Error",
@@ -276,19 +259,21 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
       return;
     }
     // Extract ownerId and find user details
-    const ownerIds = events.map(event => event.ownerId);
-    const users = await User.find({ _id: { $in: ownerIds } }).select('_id name');
+    const ownerIds = events.map((event) => event.ownerId);
+    const users = await User.find({ _id: { $in: ownerIds } }).select(
+      "_id name"
+    );
 
     // Create a map for easy lookup
-    const userMap = new Map(users.map(user => [user._id.toString(), user.name]));
+    const userMap = new Map(
+      users.map((user) => [user._id.toString(), user.name])
+    );
 
     // Add user details to events
-    const eventsWithOwnerName = events.map(event => ({
+    const eventsWithOwnerName = events.map((event) => ({
       ...event.toObject(),
       ownerName: userMap.get(event.ownerId.toString()) || null,
     }));
-
-    console.log(eventsWithOwnerName);
 
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
       events: eventsWithOwnerName,
@@ -296,10 +281,88 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
       totalPages: Math.ceil(totalPages / value.limit),
     });
   } catch (error) {
+    logError(req, res, "Error fetching events", error);
     return sendResponse(
       res,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Internal server error",
+      null
+    );
+  }
+};
+
+export const viewEventEo = async (req: Request, res: Response) => {
+  const {
+    value: { page, limit, status },
+    error,
+  } = statusAndPaginationSchema.validate(req.query);
+
+  if (error) {
+    return sendResponse(
+      res,
+      StatusCodes.BAD_REQUEST,
+      error.details[0].message,
+      null
+    );
+  }
+
+  try {
+    let queryConditions: any = {};
+    const skip = (page - 1) * limit;
+
+    const userId = req.user._id;
+    queryConditions = { ownerId: userId };
+
+    const currentDate = new Date().getTime();
+    if (status === CONSTANT.STATUS_EVENT.UPCOMING) {
+      queryConditions.startDate = { $gte: currentDate };
+    } else if (status === CONSTANT.STATUS_EVENT.PAST) {
+      queryConditions.startDate = { $lt: currentDate };
+    }
+
+    const query = Event.find(queryConditions).sort({ startDate: 1 });
+
+    const [events, totalEvents] = await Promise.all([
+      query.skip(skip).limit(limit),
+      Event.countDocuments(queryConditions),
+    ]);
+
+    const totalPages = Math.ceil(totalEvents / limit);
+
+    //Prevent sending multiple responses
+    if (handlePaginationError(res, page, totalPages)) {
+      return;
+    }
+
+    // Extract ownerId and find user details
+    const ownerIds = events.map((event) => event.ownerId);
+    const users = await User.find({ _id: { $in: ownerIds } }).select(
+      "_id name"
+    );
+
+    // Create a map for easy lookup
+    const userMap = new Map(
+      users.map((user) => [user._id.toString(), user.name])
+    );
+
+    // Add user details to events
+    const eventsWithOwnerName = events.map((event) => ({
+      ...event.toObject(),
+      ownerName: userMap.get(event.ownerId.toString()),
+    }));
+
+    return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
+      events: eventsWithOwnerName,
+      totalEvents,
+      currentPage: page,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    logError(req, res, "Error fetching events", error);
+    return sendResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
       null
     );
   }
@@ -354,7 +417,7 @@ const handlePaginationError = (
 };
 
 // input validation using Joi
-const pagiantionSchema = Joi.object({
+const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
 });
