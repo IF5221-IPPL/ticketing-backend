@@ -151,11 +151,8 @@ export const viewEventDetails = async (req: Request, res: Response) => {
 };
 
 export const viewEvents = async (req: Request, res: Response) => {
-  const userRole = req.user.role;
-  const paginationSchema =
-    userRole === CONSTANT.ROLE.EO
-      ? statusAndPaginationSchema
-      : pagiantionSchema;
+ 
+  const userRole = req.user ? req.user.role : null;
   const {
     value: { page, limit, status }, // 'status' will be undefined if not provided by a non-EO user
     error,
@@ -171,27 +168,11 @@ export const viewEvents = async (req: Request, res: Response) => {
   }
 
   try {
-    let queryConditions: any = {};
     const skip = (page - 1) * limit;
-
-    if (userRole === CONSTANT.ROLE.EO) {
-      const userId = req.user._id;
-      queryConditions = { ownerId: userId };
-
-      const currentDate = new Date().getTime();
-      if (status === CONSTANT.STATUS_EVENT.UPCOMING) {
-        queryConditions.startDate = { $gte: currentDate };
-      } else if (status === CONSTANT.STATUS_EVENT.PAST) {
-        queryConditions.startDate = { $lt: currentDate };
-      }
-    }
-
-    const query = Event.find(queryConditions).sort({ startDate: 1 });
-
-   
+    const query = Event.find().sort({ startDate: 1 });   
     const [events, totalEvents] = await Promise.all([
       query.skip(skip).limit(limit),
-      Event.countDocuments(queryConditions),
+      Event.countDocuments(),
     ]);
 
     const totalPages = Math.ceil(totalEvents / limit);
@@ -354,7 +335,7 @@ const handlePaginationError = (
 };
 
 // input validation using Joi
-const pagiantionSchema = Joi.object({
+const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
 });

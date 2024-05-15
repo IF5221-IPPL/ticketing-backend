@@ -55,6 +55,6 @@ router.get("/events/filtered", auth, viewAllEventsWithFilter);
 
 router.get("/events/:eventId", auth, validateEventId, viewEventDetails);
 
-router.get("/events", auth, viewEvents);
+router.get("/events", viewEvents);
 
 export default router;
