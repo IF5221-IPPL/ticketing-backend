@@ -3,7 +3,7 @@ import User from 'model/user';
 import EventOrganizer from 'model/event_organizer';
 import { StatusCodes } from 'http-status-codes';
 import { sendResponse } from 'pkg/http';
-import { IGetEventOrganizerResponse } from 'entity/get_eo';
+import { IGetUserResponse } from 'entity/get_user';
 import { Logger } from 'pkg/logger';
 import Joi from 'joi';
 
@@ -11,8 +11,8 @@ const validationSchema = Joi.object({
     userId: Joi.string().hex().length(24).required(),
 });
 
-export const getEO = async (req: Request, res: Response) => {
-	let response: IGetEventOrganizerResponse | null = null;
+export const getUser = async (req: Request, res: Response) => {
+	let response: IGetUserResponse | null = null;
 
     try {
         const { error } = validationSchema.validate(req.body);
@@ -28,7 +28,6 @@ export const getEO = async (req: Request, res: Response) => {
         if (!user) {
             return sendResponse(res, StatusCodes.NOT_FOUND, "User not found", "");
         }
-        const organizer = await EventOrganizer.findOne({userId: req.body.userId});
         
         response = {
             userId: user._id,    
@@ -36,22 +35,16 @@ export const getEO = async (req: Request, res: Response) => {
             email: user.email,
             isActive: user.isActive,
             role: user.role,
-            establishYear: organizer.establishYear,
-            contactNumber: organizer.contactNumber,
-            industry: organizer.industry,
-            address: organizer.address,
-            description: organizer.description,
-            gptAccessTokenQuota: organizer.gptAccessTokenQuota,
             profilePictureUrl: user.profilePictureUrl,
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt?.toISOString(),
         };
  
-        sendResponse(res, StatusCodes.OK, "Successfully get EO", response);
+        sendResponse(res, StatusCodes.OK, "Successfully get user", response);
     } catch (err) {
         Logger.error(
 			{
-				message: "Failed to get EO",
+				message: "Failed to get user",
 				request: {userId: req.body.userId},
 				response: response,
 				error: { 
