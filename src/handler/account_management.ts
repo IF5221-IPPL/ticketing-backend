@@ -24,7 +24,6 @@ export const viewAccounts = async (req: Request, res: Response) => {
   }
 
   try {
-   
     const skip = (page - 1) * limit;
     const rolesToFind = [CONSTANT.ROLE.EO, CONSTANT.ROLE.CUSTOMER];
     const queryConditions = { role: { $in: rolesToFind } };
@@ -36,7 +35,7 @@ export const viewAccounts = async (req: Request, res: Response) => {
 
     const totalPages = Math.ceil(totalUsers / limit);
 
-       //Prevent sending multiple responses
+    //Prevent sending multiple responses
     if (handlePaginationError(res, page, totalPages)) {
       return;
     }
@@ -104,7 +103,7 @@ export const viewAccountsWithFiltered = async (req: Request, res: Response) => {
     const totalPages = Math.ceil(totalUsers / limit);
     // Map each user to an IAccount object
     const results: IAccount[] = users.map((user) => ({
-        _id: user._id,
+      _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -186,35 +185,31 @@ export const updateAccount = async (req: Request, res: Response) => {
     );
   }
 
-  const { value, error } = userSchema.validate(req.body);
-  if (error) {
-    return sendResponse(
-      res,
-      StatusCodes.BAD_REQUEST,
-      error.details[0].message,
-      null
-    );
-  }
   try {
-    const updatedAccount = await User.findByIdAndUpdate(accountId, value, {
-      new: true,
-      runValidators: true,
-    });
-    const result: IAccount = {
-        _id: updatedAccount._id, 
-        name: updatedAccount.name,
-        email: updatedAccount.email,
-        role: updatedAccount.role,
-        isActive: updatedAccount.isActive,
-        createdAt: updatedAccount.createdAt,
-        updatedAt: updatedAccount.updatedAt,
-      };
-
+    const user = await User.findById(accountId);
+    if (!user) {
+      return sendResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        `User with ${accountId} not found`,
+        null
+      );
+    }
+    const updated = await User.findByIdAndUpdate(
+      accountId,
+      { isActive: !user.isActive },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     return sendResponse(
       res,
       StatusCodes.OK,
-      `Account with Id ${accountFilterSchema} successfully updated!`,
-      result
+      `Account with Id ${accountId} successfully updated!`,
+      {
+        isActive:updated.isActive
+      }
     );
   } catch (error) {
     logError(req, res, "Error updating account", error);
@@ -276,9 +271,6 @@ const handlePaginationError = (
 };
 
 // input validation using Joi
-const statusActiveSchema = Joi.object({
-  isActive: Joi.bool().required(),
-});
 
 const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
@@ -290,13 +282,4 @@ const accountFilterSchema = Joi.object({
   keyword: Joi.string().trim().optional(),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(25),
-});
-
-const userSchema = Joi.object({
-  name: Joi.string().optional(),
-  email: Joi.string().email().optional(),
-  role: Joi.string().optional(),
-  isActive: Joi.boolean().optional(),
-  createdAt: Joi.date().iso().optional(),
-  updatedAt: Joi.date().iso().optional(),
 });
