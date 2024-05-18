@@ -15,16 +15,16 @@ export const getUser = async (req: Request, res: Response) => {
 	let response: IGetUserResponse | null = null;
 
     try {
-        const { error } = validationSchema.validate(req.body);
+        const { error } = validationSchema.validate(req.params);
         if (error) {
             return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, "");
         }
 
-        if (req.user._id.toString() !== req.body.userId) {
+        if (req.user._id.toString() !== req.params.userId) {
             return sendResponse(res, StatusCodes.FORBIDDEN, "You are not allowed", "");
         }
 
-        const user = await User.findById(req.body.userId);
+        const user = await User.findById(req.params.userId);
         if (!user) {
             return sendResponse(res, StatusCodes.NOT_FOUND, "User not found", "");
         }
@@ -45,7 +45,7 @@ export const getUser = async (req: Request, res: Response) => {
         Logger.error(
 			{
 				message: "Failed to get user",
-				request: {userId: req.body.userId},
+				request: {userId: req.params.userId},
 				response: response,
 				error: { 
 					message: err.message, 
