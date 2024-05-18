@@ -15,7 +15,7 @@ router.post(
 );
 
 router.get(
-    "/purchases",
+    "/purchases/:userId",
     auth,
     checkRole(CONSTANT.ROLE.EO),
     getPurchases

@@ -13,16 +13,16 @@ export const getPurchases = async (req: Request, res: Response) => {
     let response = null;
 
     try {
-        const { error } = validationSchema.validate(req.body);
+        const { error } = validationSchema.validate(req.params);
         if (error) {
             return sendResponse(res, StatusCodes.BAD_REQUEST, error.details[0].message, "");
         }
 
-        if (req.user._id.toString() !== req.body.userId) {
+        if (req.user._id.toString() !== req.params.userId) {
             return sendResponse(res, StatusCodes.FORBIDDEN, "You are not allowed", "");
         }
 
-        const purchases = await Purchase.find({userId: req.body.userId});
+        const purchases = await Purchase.find({userId: req.params.userId});
         response = purchases
         
         sendResponse(res, StatusCodes.OK, "Successfully get subscription purchases", response);
@@ -30,7 +30,7 @@ export const getPurchases = async (req: Request, res: Response) => {
         Logger.error(
 			{
 				message: "Failed to get subscription purchases",
-				request: {userId: req.body.userId},
+				request: {userId: req.params.userId},
 				response: response,
 				error: { 
 					message: err.message, 
