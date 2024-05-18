@@ -175,28 +175,28 @@ export const deleteAccount = async (req: Request, res: Response) => {
 };
 
 export const updateAccount = async (req: Request, res: Response) => {
-  const accountId = req.params.accountId;
-  if (!isValidObjectId(accountId)) {
-    return sendResponse(
-      res,
-      StatusCodes.BAD_REQUEST,
-      "Invalid account ID",
-      null
-    );
-  }
+  const {userId} = req.body;
+  // if (!isValidObjectId(accountId)) {
+  //   return sendResponse(
+  //     res,
+  //     StatusCodes.BAD_REQUEST,
+  //     "Invalid account ID",
+  //     null
+  //   );
+  // }
 
   try {
-    const user = await User.findById(accountId);
+    const user = await User.findById(userId);
     if (!user) {
       return sendResponse(
         res,
         StatusCodes.BAD_REQUEST,
-        `User with ${accountId} not found`,
+        `User with ${userId} not found`,
         null
       );
     }
     const updated = await User.findByIdAndUpdate(
-      accountId,
+      userId,
       { isActive: !user.isActive },
       {
         new: true,
@@ -206,7 +206,7 @@ export const updateAccount = async (req: Request, res: Response) => {
     return sendResponse(
       res,
       StatusCodes.OK,
-      `Account with Id ${accountId} successfully updated!`,
+      `Account with Id ${userId} successfully updated!`,
       {
         isActive:updated.isActive
       }

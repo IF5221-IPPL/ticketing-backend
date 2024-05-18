@@ -26,7 +26,7 @@ router.delete(
   deleteAccount
 );
 router.put(
-  "/accounts/:accountId",
+  "/accounts/update",
   auth,
   checkRole(CONSTANT.ROLE.ADMIN),
   updateAccount
