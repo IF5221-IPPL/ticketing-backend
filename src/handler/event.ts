@@ -241,6 +241,14 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
       $lte: new Date(value.endDate),
     };
   }
+  if (value.status){
+    const currentDate = new Date().getTime();
+    if (value.status === CONSTANT.STATUS_EVENT.UPCOMING) {
+      queryConditions.startDate = { $gte: currentDate };
+    } else if (value.status === CONSTANT.STATUS_EVENT.PAST) {
+      queryConditions.startDate = { $lt: currentDate };
+    }
+  }
 
   try {
     const [events, totalEvents] = await Promise.all([
@@ -433,6 +441,7 @@ const eventFilterSchema = Joi.object({
   location: Joi.string().trim().optional(),
   startDate: Joi.date().iso().optional(),
   endDate: Joi.date().iso().min(Joi.ref("startDate")).optional(),
+  status: Joi.string().valid("upcoming", "past").optional(),
   page: Joi.alternatives([
     Joi.number().integer().min(1),
     Joi.string()
