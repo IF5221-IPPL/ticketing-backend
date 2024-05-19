@@ -251,15 +251,13 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
   }
 
   try {
-    const [events, totalEvents] = await Promise.all([
-      Event.find(queryConditions)
+    const events = await Event.find(queryConditions)
         .sort({ startDate: 1 }) // Sorting by start date ascending
         .skip((value.page - 1) * value.limit)
         .limit(value.limit)
-        .exec(),
-      Event.countDocuments(queryConditions),
-    ]);
+        .exec();
 
+    const totalEvents = await Event.countDocuments(queryConditions);
     const totalPages = Math.ceil(totalEvents / value.limit);
 
     //Prevent sending multiple responses
@@ -286,7 +284,7 @@ export const viewAllEventsWithFilter = async (req: Request, res: Response) => {
     return sendResponse(res, StatusCodes.OK, "Events retrieved successfully", {
       events: eventsWithOwnerName,
       page: value.page,
-      totalPages: Math.ceil(totalPages / value.limit),
+      totalPages: totalPages,
     });
   } catch (error) {
     logError(req, res, "Error fetching events", error);
