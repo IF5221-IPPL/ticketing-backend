@@ -27,4 +27,6 @@ jobs:
             docker-compose -f docker-compose-prod.yaml down
             echo "rebuild apps"
             docker-compose -f docker-compose-prod.yaml up --build -d --remove-orphans
+            echo "removing unused images"
+            docker image prune -f
             exit
