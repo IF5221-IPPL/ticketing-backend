@@ -41,7 +41,7 @@ export const getTickets = async (req: Request, res: Response) => {
         queryConditions.userId = req.user._id;
 
         // update ticket status to done where endDate is less than current date
-        await TicketPurchase.updateMany({ endDate: { $lt: Date.now() }, status: "active" }, { status: "done" }).exec();
+        await TicketPurchase.updateMany({ eventEndDate: { $lt: Date.now() }, status: "active" }, { status: "done" }).exec();
 
         const skip = (page - 1) * limit;
 
