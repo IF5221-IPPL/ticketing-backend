@@ -7,6 +7,7 @@ import Joi from "joi";
 import CONSTANT from "entity/const/";
 import User from "model/user/";
 import EventOrganizer from "model/event_organizer/";
+import TicketPurchase from "model/ticket_purchase/";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
@@ -51,6 +52,16 @@ export const updateEventById = async (req: Request, res: Response) => {
       new: true,
       runValidators: true,
     });
+
+    await TicketPurchase.updateMany({
+      eventId: eventId,
+    }, {
+      eventTitle: updateEvent.eventTitle,
+      eventSubTitle: updateEvent.eventSubTitle,
+      eventLocation: updateEvent.location,
+      eventStartDate: updateEvent.startDate,
+      eventEndDate: updateEvent.endDate,
+    }, { runValidators: true })
 
     return sendResponse(
       res,
