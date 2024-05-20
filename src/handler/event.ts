@@ -129,7 +129,6 @@ export const viewEventDetails = async (req: Request, res: Response) => {
     const organizer = await EventOrganizer.findOne({ userId: event.ownerId });
 
     const user = await User.findOne({ _id: event.ownerId });
-    console.log(user);
 
     return sendResponse(
       res,
