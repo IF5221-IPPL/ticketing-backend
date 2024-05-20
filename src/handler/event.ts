@@ -128,7 +128,9 @@ export const viewEventDetails = async (req: Request, res: Response) => {
     }
     const organizer = await EventOrganizer.findOne({ userId: event.ownerId });
 
-    const user: any = await User.findOne({ _id: event.ownerId });
+    const user = await User.findOne({ _id: event.ownerId });
+    console.log(user);
+
     return sendResponse(
       res,
       StatusCodes.OK,
@@ -137,6 +139,7 @@ export const viewEventDetails = async (req: Request, res: Response) => {
         event,
         ownerName: user ? user.name : null,
         organizer: organizer ? organizer : null,
+        eoProfilePicture: user ? user.profilePictureUrl : null,
       }
     );
   } catch (error) {
@@ -373,6 +376,7 @@ export const viewEventEo = async (req: Request, res: Response) => {
     );
   }
 };
+
 
 // Helper function for logging error
 function logError(
