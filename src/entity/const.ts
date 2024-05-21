@@ -2,8 +2,8 @@ const CONSTANT = {
   DEFAULT_PORT: 5000,
   PROD_TAG: "PRODUCTION",
   CORS_ORIGIN: {
-    DEVELOPMENT: ["*", "http://localhost:3000"],
-    PRODUCTION: ["*", "http://localhost:3000"],
+    DEVELOPMENT: ["*", "http://localhost:3000", "https://online-ticketing-sigma.vercel.app"],
+    PRODUCTION: ["*", "http://localhost:3000", "https://online-ticketing-sigma.vercel.app"],
   },
   DEFAULT_LOG_FILE_PATH: "logs/all.log",
   DEFAULT_ACCCESS_LOG_FILE_PATH: "logs/access.log",
